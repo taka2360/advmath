@@ -1,0 +1,174 @@
+---
+import { edgesOf, pad2, type Unit } from '../../lib/units';
+import { unitUrl } from '../../lib/url';
+
+interface Props {
+  units: Unit[];
+  compact?: boolean;
+}
+
+const { units, compact = false } = Astro.props;
+const W = 1000;
+const H = 620;
+const pos = (u: Unit): [number, number] => [60 + (u.data.map.x / 100) * (W - 120), 50 + (u.data.map.y / 100) * (H - 100)];
+const byId = new Map(units.map((u) => [u.id, u]));
+const edges = edgesOf(units);
+const groups = [
+  { name: '解析', color: 'var(--vermilion)' },
+  { name: '線形', color: 'var(--accent)' },
+  { name: '離散', color: 'var(--green)' },
+] as const;
+const colorOf = (g: string) => groups.find((x) => x.name === g)!.color;
+---
+
+<figure class:list={['cmap', { compact }]}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="12単元の概念マップ。前提・応用・関連の3種類の線で単元がつながっている">
+    <defs>
+      <marker id="cm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10Z" fill="var(--ink-2)"></path>
+      </marker>
+    </defs>
+    {
+      edges.map((e) => {
+        const [x1, y1] = pos(byId.get(e.from)!);
+        const [x2, y2] = pos(byId.get(e.to)!);
+        // ノードの円の外側で止める
+        const d = Math.hypot(x2 - x1, y2 - y1);
+        const k = 34 / d;
+        const a = [x1 + (x2 - x1) * k, y1 + (y2 - y1) * k];
+        const b = [x2 - (x2 - x1) * k, y2 - (y2 - y1) * k];
+        return (
+          <path
+            class={`edge ${e.kind}`}
+            d={`M${a[0]} ${a[1]}L${b[0]} ${b[1]}`}
+            marker-end={e.kind === 'related' ? undefined : 'url(#cm-arrow)'}
+          />
+        );
+      })
+    }
+    {
+      units.map((u) => {
+        const [x, y] = pos(u);
+        return (
+          <a href={unitUrl(u.id)} class="node" aria-label={`${u.data.order}. ${u.data.title}`}>
+            <circle cx={x} cy={y} r="30" style={`--c: ${colorOf(u.data.map.group)}`} />
+            <text x={x} y={y + 7} text-anchor="middle" class="num">
+              {pad2(u.data.order)}
+            </text>
+            <text x={x} y={y + 54} text-anchor="middle" class="ttl">
+              {u.data.map.label}
+            </text>
+          </a>
+        );
+      })
+    }
+  </svg>
+  <figcaption class="legend">
+    {groups.map((g) => <span class="g" style={`--c: ${g.color}`}>{g.name}</span>)}
+    <span class="e prerequisite">前提（→ の先で使う）</span>
+    <span class="e application">応用</span>
+    <span class="e related">関連</span>
+  </figcaption>
+</figure>
+
+<style>
+  .cmap {
+    margin: 0;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .edge {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 2;
+  }
+
+  .edge.application {
+    stroke-dasharray: 9 6;
+  }
+
+  .edge.related {
+    stroke: var(--line-strong);
+    stroke-dasharray: 2 6;
+    stroke-linecap: round;
+    stroke-width: 2.5;
+  }
+
+  .node circle {
+    fill: var(--surface);
+    stroke: var(--c);
+    stroke-width: 2.5;
+    transition: fill 0.15s;
+  }
+
+  .node:hover circle,
+  .node:focus-visible circle {
+    fill: color-mix(in srgb, var(--c) 18%, var(--surface));
+  }
+
+  .node:focus-visible {
+    outline: none;
+  }
+
+  .node:focus-visible circle {
+    stroke-width: 4;
+  }
+
+  .num {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 700;
+    fill: var(--ink);
+  }
+
+  .ttl {
+    font-size: 15px;
+    fill: var(--ink-2);
+  }
+
+  .compact .ttl {
+    font-size: 17px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--ink-2);
+  }
+
+  .g::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 50%;
+    border: 2px solid var(--c);
+    vertical-align: -1px;
+  }
+
+  .e::before {
+    content: '';
+    display: inline-block;
+    width: 26px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-top: 2px solid var(--ink-2);
+  }
+
+  .e.application::before {
+    border-top-style: dashed;
+  }
+
+  .e.related::before {
+    border-top: 2.5px dotted var(--line-strong);
+  }
+</style>

@@ -1,0 +1,63 @@
+---
+/** 答案の作法の3点セット */
+const KINDS = {
+  idea: { n: '①', label: '発想として使う', note: '方針を立てる・答えの見当をつける・検算する' },
+  direct: { n: '②', label: 'そのまま書くなら', note: '条件の確認と根拠の示し方' },
+  rebuild: { n: '③', label: '高校数学で書き直す', note: '同じ結論を範囲内の道具で示す答案例' },
+} as const;
+
+interface Props {
+  kind: keyof typeof KINDS;
+}
+const k = KINDS[Astro.props.kind];
+---
+
+<section class="craft" data-kind={Astro.props.kind}>
+  <header>
+    <span class="n">{k.n}</span>
+    <h3>{k.label}</h3>
+    <span class="note">{k.note}</span>
+  </header>
+  <div class="body"><slot /></div>
+</section>
+
+<style>
+  .craft {
+    margin: 1.6em 0;
+    padding: 1em 1.2em 1.1em;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .craft[data-kind='rebuild'] {
+    border-color: color-mix(in srgb, var(--green) 40%, var(--line));
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2em 0.6em;
+  }
+
+  .n {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    color: var(--vermilion);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.08rem;
+  }
+
+  .note {
+    font-size: 0.8rem;
+    color: var(--ink-3);
+  }
+
+  .body :global(> :first-child) {
+    margin-top: 0.4em;
+  }
+</style>

@@ -1,0 +1,102 @@
+---
+import { chTable, CH_PRESETS, type ChState } from '../../lib/scenes/cayley';
+
+const st: ChState = { preset: 'fib', n: 8 };
+---
+
+<figure class="fig ch" data-figure="ch" data-state={JSON.stringify(st)}>
+  <div class="fig-head">
+    <h3 class="fig-title">次数を下げ続けて A<sup>n</sup> を作る</h3>
+    <span class="fig-hint">A<sup>n</sup> = p<sub>n</sub>A + q<sub>n</sub>I の係数を1段ずつ</span>
+  </div>
+  <div class="ch-body" data-k="table" aria-live="polite" set:html={chTable(st)} />
+  <div class="fig-controls">
+    <div class="ctl">
+      <span>行列 A</span>
+      <div class="seg" data-k="presets">
+        {
+          CH_PRESETS.map((p) => (
+            <button type="button" data-value={p.id} aria-pressed={p.id === st.preset ? 'true' : 'false'}>
+              {p.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <label>
+      <span>n = <span class="ctl-value" data-out="n">{st.n}</span> まで</span>
+      <input type="range" min="1" max="16" step="1" value={st.n} data-in="n" />
+    </label>
+  </div>
+  <figcaption class="fig-caption"><slot /></figcaption>
+</figure>
+
+<script>
+  import { $, onFigures, onInput, segmented } from '../../lib/interaction';
+  import { chTable, type ChState } from '../../lib/scenes/cayley';
+
+  onFigures('ch', (root) => {
+    const st = JSON.parse(root.dataset.state!) as ChState;
+    const draw = () => {
+      $(root, '[data-k="table"]').innerHTML = chTable(st);
+      $(root, '[data-out="n"]').textContent = String(st.n);
+    };
+    segmented($(root, '[data-k="presets"]'), (id) => {
+      st.preset = id;
+      draw();
+    });
+    onInput($<HTMLInputElement>(root, '[data-in="n"]'), (el) => {
+      st.n = Number(el.value);
+      draw();
+    });
+  });
+</script>
+
+<style is:global>
+  .ch-body {
+    padding: 12px 18px 16px;
+    overflow-x: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ch-rel {
+    margin: 0 0 10px;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+  }
+
+  .ch-rel b {
+    color: var(--ink);
+    font-family: var(--font-mono);
+  }
+
+  .ch-table {
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    min-width: 100%;
+  }
+
+  .ch-table th,
+  .ch-table td {
+    padding: 4px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+
+  .ch-table th {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+
+  .ch-table tr:last-child td {
+    background: color-mix(in srgb, var(--vermilion) 10%, transparent);
+    font-weight: 700;
+  }
+
+  .ch-table .ok {
+    color: var(--green);
+  }
+</style>

@@ -1,0 +1,248 @@
+---
+order: 8
+title: 合同式とフェルマーの小定理
+hook: 余りだけを持ち歩けば、巨大な累乗も手で計算できる。
+summary: 「割った余りが等しい」を等式のように扱う記法が合同式。足し算・掛け算・累乗はそのまま計算でき、素数を法とするとき累乗の余りには周期がある（フェルマーの小定理）。
+payoff: 「2¹⁰⁰ を 7 で割った余り」「n⁷ − n はつねに 42 の倍数」のような整数問題で、余りの周期から答えを即座に見抜き、二項定理による範囲内の答案に落とし込めるようになる。
+minutes: 35
+outsideType: 道具
+hsPrerequisites:
+  - 整数の割り算と余り
+  - 素因数分解・最大公約数
+  - 二項定理
+newTools:
+  - 合同式とその計算規則
+  - フェルマーの小定理
+  - 位数（累乗の周期）
+backToHS: 「a = mq + r とおいて二項定理で展開する」か、「余りで場合分けする」形に書き直す。合同式で出した答えはその検算に使う。
+edges:
+  prerequisite: []
+  application: []
+  related: [recurrence]
+aliases:
+  - 合同式
+  - mod
+  - 剰余
+  - 余り
+  - フェルマー
+  - Fermat
+  - 位数
+  - オイラーの定理
+pitfalls:
+  - フェルマーの小定理は p が素数かつ p ∤ a のときに限る
+  - 小定理の逆は成り立たない（aⁿ⁻¹ ≡ 1 でも n が素数とは限らない）
+  - 合同式の両辺を割れるのは、割る数と法が互いに素なときだけ
+  - 法が異なる合同式どうしは混ぜて計算できない
+exercises:
+  - { id: mod-1, title: 大きな累乗の余り, level: 基本 }
+  - { id: mod-2, title: n⁷ − n は 42 の倍数, level: 標準 }
+  - { id: mod-3, title: 合同式の割り算, level: 標準 }
+  - { id: mod-4, title: 小定理の逆の反例, level: 発展 }
+map: { x: 93, y: 46, group: 離散, label: 合同式 }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import ModClock from '../../components/interactive/ModClock.astro';
+
+<Layer id="intuition">余りの世界は、時計である</Layer>
+
+7 で割った余りだけを気にするなら、整数は $0, 1, \dots, 6$ の7つの目盛りをもつ時計の上を回っているのと同じです。$3$ を掛け続けると、余りは $1 \to 3 \to 2 \to 6 \to 4 \to 5 \to 1$ と6回で元に戻ります。
+
+<ModClock>
+  法 $m$ と底 $a$ を変えて、累乗の余りがどう巡るかを見てください。$m$ が素数で $a$ が $m$ の倍数でなければ、必ず $1$（朱色）に戻り、周期は $m - 1$ の約数になります。$m = 15,\ a = 2$ や $m = 15,\ a = 4$ も試してみましょう。
+</ModClock>
+
+周期が分かれば、$3^{2026}$ のような巨大な数の余りも、指数を周期で割った余りだけで決まります。
+
+<Layer id="tool">合同式とフェルマーの小定理</Layer>
+
+<Theorem kind="定義" name="合同式">
+
+整数 $a, b$ と正の整数 $m$ について、$a - b$ が $m$ の倍数であるとき $a \equiv b \pmod m$ と書き、「$a$ と $b$ は $m$ を法として合同」という。$a$ と $b$ を $m$ で割った余りが等しいことと同じ。
+
+</Theorem>
+
+$a \equiv b,\ c \equiv d \pmod m$ ならば
+
+$$
+a + c \equiv b + d, \qquad a - c \equiv b - d, \qquad ac \equiv bd, \qquad a^n \equiv b^n \pmod m .
+$$
+
+ただし**割り算は無条件にはできません**。$ac \equiv bc \pmod m$ から $a \equiv b \pmod m$ が言えるのは、$c$ と $m$ が互いに素なときです。
+
+<Theorem name="フェルマーの小定理">
+
+$p$ が素数で、$a$ が $p$ の倍数でないならば
+
+$$
+a^{p-1} \equiv 1 \pmod p .
+$$
+
+両辺に $a$ を掛けた $a^p \equiv a \pmod p$ は、$p$ の倍数を含むすべての整数 $a$ で成り立つ。
+
+</Theorem>
+
+<Pitfall title="割り算の条件">
+
+$2\cdot3 \equiv 2\cdot6 \pmod 6$（どちらも $0$）ですが、$3 \not\equiv 6 \pmod 6$ です。$2$ と $6$ が互いに素でないので、両辺を $2$ で割れません。正しくは法も割って $3 \equiv 6 \pmod 3$ とします（演習3）。
+
+</Pitfall>
+
+<Pitfall title="小定理の逆は成り立たない">
+
+$a^{n-1} \equiv 1 \pmod n$ でも、$n$ が素数とは限りません。図で $m = 15,\ a = 4$ とすると $4^{14} \equiv 1 \pmod{15}$ ですが、$15$ は合成数です（演習4ではもっと有名な例を扱います）。
+
+</Pitfall>
+
+<Layer id="why">余りを並べ替えるだけ</Layer>
+
+<Proof title="フェルマーの小定理の証明">
+
+$a, 2a, 3a, \dots, (p-1)a$ を $p$ で割った余りを考える。
+
+- どれも $0$ でない：$ka$ が $p$ の倍数なら、$p$ は素数なので $p \mid k$ か $p \mid a$。どちらも $1 \le k \le p - 1$、$p \nmid a$ に反する。
+- どの2つも異なる：$ia \equiv ja\ (i > j)$ なら $p \mid (i - j)a$ で、同様に矛盾。
+
+したがってこれら $p - 1$ 個の余りは $1, 2, \dots, p - 1$ を並べ替えたものになり、すべて掛けると
+
+$$
+(p-1)!\,a^{p-1} \equiv (p-1)! \pmod p .
+$$
+
+$(p-1)!$ は $p$ と互いに素（$p$ より小さい正の整数の積）なので両辺を割れて、$a^{p-1} \equiv 1 \pmod p$。
+
+</Proof>
+
+証明の中で「$p$ が素数」と「$p \nmid a$」がそれぞれ1回ずつ、決定的な場面で使われています。条件を外すと成り立たなくなるのはそのためです。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> $2^{100}$ を $7$ で割った余りを求めよ。
+
+<Craft kind="idea">
+
+$2^3 = 8 \equiv 1 \pmod 7$ なので周期は $3$。$100 = 3\cdot33 + 1$ より $2^{100} \equiv 2 \pmod 7$。フェルマーの小定理（$2^6 \equiv 1$）からも $2^{100} = 2^{96}\cdot2^4 \equiv 16 \equiv 2$ と同じ答えが出ます。
+
+</Craft>
+
+<Craft kind="direct">
+
+合同式は「余りが等しい」を書く記法で、計算規則を正しく使っていれば記述は簡潔になります。ただし範囲外の記法・定理を答案の根拠として認めるかどうかは試験によって異なります。合同式を使う場合も、フェルマーの小定理のような定理を使う場合は、条件（素数であること、互いに素であること）を明記しましょう。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例．** $2^{100} = 2\cdot(2^3)^{33} = 2\cdot(7 + 1)^{33}$。二項定理より
+
+$$
+(7 + 1)^{33} = \sum_{k=0}^{33}{}_{33}\mathrm{C}_k\,7^k = 1 + 7N \quad (N \text{ は整数}).
+$$
+
+よって $2^{100} = 2 + 14N$ で、$7$ で割った余りは $2$。
+
+</Craft>
+
+周期 $3$ を見抜いたことが、$2^3 = 7 + 1$ と書くという範囲内の答案の方針そのものになっています。
+
+<Layer id="advanced">位数とオイラーの定理</Layer>
+
+$a^k \equiv 1 \pmod m$ となる最小の正の整数 $k$ を、$a$ の（$m$ を法とする）**位数**といいます。図で見た「周期」のことです。$a^n \equiv 1$ ならば $n$ は位数の倍数で、フェルマーの小定理と合わせると**位数は $p - 1$ の約数**だと分かります（$n$ を位数で割った余り $r$ について $a^r \equiv 1$ となり、最小性から $r = 0$）。
+
+法が素数でないときは、$m$ と互いに素な $1$ 以上 $m$ 以下の整数の個数 $\varphi(m)$ を使って
+
+$$
+a^{\varphi(m)} \equiv 1 \pmod m \qquad (\gcd(a, m) = 1)
+$$
+
+が成り立ちます（**オイラーの定理**）。証明は小定理とまったく同じで、「$m$ と互いに素な余り」だけを並べ替えます。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="mod-1" n={1} title="大きな累乗の余り" level="基本">
+
+$3^{2026}$ を $7$ で割った余りを求めよ。
+
+<Step kind="hint" n={1}>
+図で $m = 7,\ a = 3$ とすると周期は $6$ です。
+</Step>
+
+<Step kind="answer">
+
+フェルマーの小定理より $3^6 \equiv 1 \pmod 7$。$2026 = 6\cdot337 + 4$ より $3^{2026} \equiv 3^4 = 81 \equiv 4 \pmod 7$。
+
+範囲内の答案：$3^6 = 729 = 7\cdot104 + 1$ と書き、$(7\cdot104 + 1)^{337}$ を二項定理で展開すれば $3^{2022} = 7N + 1$。
+
+答え：$4$
+
+</Step>
+
+</Exercise>
+
+<Exercise id="mod-2" n={2} title="n⁷ − n は 42 の倍数" level="標準">
+
+すべての整数 $n$ について、$n^7 - n$ は $42$ の倍数であることを示せ。
+
+<Step kind="hint" n={1}>
+$42 = 2\cdot3\cdot7$。それぞれの素数について $n^7 \equiv n$ を示します。
+</Step>
+
+<Step kind="answer">
+
+$p = 7$：$n^7 \equiv n \pmod 7$（小定理の $a^p \equiv a$ の形）。
+
+$p = 3$：$n^3 \equiv n$ より $n^7 = n^3\cdot n^3\cdot n \equiv n\cdot n\cdot n = n^3 \equiv n \pmod 3$。
+
+$p = 2$：$n^2 \equiv n$ より $n^7 \equiv n \pmod 2$。
+
+$2, 3, 7$ は互いに素なので、$n^7 - n$ は $42$ の倍数。
+
+範囲内の答案では、$n^7 - n = n(n-1)(n+1)(n^2 + n + 1)(n^2 - n + 1)$ と因数分解し、$n$ を $7$ で割った余りで場合分けして $7$ の倍数であることを示す（$n \equiv 2$ なら $n^2 + n + 1 = 7$ など）。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="mod-3" n={3} title="合同式の割り算" level="標準">
+
+$6x \equiv 4 \pmod{10}$ をみたす整数 $x$ をすべて求めよ。
+
+<Step kind="hint" n={1}>
+$6x - 4 = 10k$ の両辺を $2$ で割ると $3x - 2 = 5k$。法も割れることに注意します。
+</Step>
+
+<Step kind="answer">
+
+$6x \equiv 4 \pmod{10} \iff 3x \equiv 2 \pmod 5$。$3\cdot2 = 6 \equiv 1 \pmod 5$ なので両辺に $2$ を掛けて $x \equiv 4 \pmod 5$。
+
+答え：$x = 5k + 4$（$k$ は整数）。$10$ を法として書けば $x \equiv 4, 9 \pmod{10}$。
+
+（誤り例：両辺を $2$ で割って $3x \equiv 2 \pmod{10}$ とすると、$x \equiv 4 \pmod{10}$ だけになり $x = 9$ を取りこぼす。）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="mod-4" n={4} title="小定理の逆の反例" level="発展">
+
+$341 = 11\cdot31$ は合成数だが、$2^{340} \equiv 1 \pmod{341}$ であることを示せ。
+
+<Step kind="hint" n={1}>
+$2^{10} = 1024$ を $341$ で割ってみましょう。
+</Step>
+
+<Step kind="answer">
+
+$2^{10} = 1024 = 3\cdot341 + 1$ より $2^{10} \equiv 1 \pmod{341}$。よって $2^{340} = (2^{10})^{34} \equiv 1 \pmod{341}$。
+
+$341$ は $2$ を底とする**擬素数**の最小のものとして知られている。「$2^{n-1} \equiv 1 \pmod n$ なら $n$ は素数」という判定は誤りである。
+
+</Step>
+
+</Exercise>

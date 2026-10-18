@@ -1,0 +1,99 @@
+---
+import Figure from './Figure.astro';
+import { H, W, crossReadout, crossScene, type CrossState } from '../../lib/scenes/cross';
+
+const st: CrossState = { a: [2, 0, 0.5], b: [0.5, 2, 0], yaw: -0.6, pitch: 0.45 };
+const comps = [
+  ['a', 0, 'x'],
+  ['a', 1, 'y'],
+  ['a', 2, 'z'],
+  ['b', 0, 'x'],
+  ['b', 1, 'y'],
+  ['b', 2, 'z'],
+] as const;
+---
+
+<Figure
+  name="cross"
+  title="外積：両方に垂直で、大きさは面積"
+  state={st}
+  scene={crossScene(st)}
+  readout={crossReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="空間の2つのベクトル a, b と、その外積 a×b、および a, b が張る平行四辺形"
+  hint="図の上をドラッグすると視点が回ります（図を選択して矢印キーでも可）"
+  legend={[
+    { label: 'a', color: 'var(--accent)' },
+    { label: 'b', color: 'var(--vermilion)' },
+    { label: 'a×b', color: 'var(--green)' },
+  ]}
+>
+  <Fragment slot="controls">
+    {
+      comps.map(([v, i, axis]) => (
+        <label>
+          <span>
+            {v} の {axis} 成分 = <span class="ctl-value" data-out={`${v}${i}`}>{st[v][i]}</span>
+          </span>
+          <input type="range" min="-2" max="2" step="0.5" value={st[v][i]} data-v={v} data-i={i} />
+        </label>
+      ))
+    }
+  </Fragment>
+  <slot />
+</Figure>
+
+<script>
+  import { $, onFigures, onInput } from '../../lib/interaction';
+  import { crossReadout, crossScene, type CrossState } from '../../lib/scenes/cross';
+
+  onFigures('cross', (root) => {
+    const st = JSON.parse(root.dataset.state!) as CrossState;
+    const svg = $<SVGSVGElement>(root, 'svg');
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = crossScene(st);
+      $(root, '[data-k="readout"]').innerHTML = crossReadout(st);
+    };
+    root.querySelectorAll<HTMLInputElement>('input[data-v]').forEach((el) =>
+      onInput(el, () => {
+        const key = el.dataset.v as 'a' | 'b';
+        const i = Number(el.dataset.i);
+        st[key][i] = Number(el.value);
+        $(root, `[data-out="${key}${i}"]`).textContent = el.value;
+        draw();
+      }),
+    );
+    // 視点の回転
+    const clampPitch = (p: number) => Math.min(1.55, Math.max(0.15, p));
+    let last: { x: number; y: number } | null = null;
+    svg.setAttribute('tabindex', '0');
+    svg.style.cursor = 'grab';
+    svg.addEventListener('pointerdown', (e) => {
+      last = { x: e.clientX, y: e.clientY };
+      svg.setPointerCapture(e.pointerId);
+    });
+    svg.addEventListener('pointermove', (e) => {
+      if (!last || !svg.hasPointerCapture(e.pointerId)) return;
+      st.yaw -= (e.clientX - last.x) * 0.01;
+      st.pitch = clampPitch(st.pitch - (e.clientY - last.y) * 0.01);
+      last = { x: e.clientX, y: e.clientY };
+      draw();
+    });
+    svg.addEventListener('pointerup', () => (last = null));
+    svg.addEventListener('keydown', (e) => {
+      const d: Record<string, [number, number]> = {
+        ArrowLeft: [0.1, 0],
+        ArrowRight: [-0.1, 0],
+        ArrowUp: [0, 0.1],
+        ArrowDown: [0, -0.1],
+      };
+      const m = d[e.key];
+      if (!m) return;
+      e.preventDefault();
+      st.yaw += m[0];
+      st.pitch = clampPitch(st.pitch + m[1]);
+      draw();
+    });
+  });
+</script>

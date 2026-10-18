@@ -1,0 +1,47 @@
+---
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<aside class="pit" aria-label={`落とし穴: ${title}`}>
+  <div class="label">
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+      <path d="M10 2 19 18H1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+      <path d="M10 8v4.5M10 14.6v.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+    </svg>
+    <span>落とし穴</span><strong>{title}</strong>
+  </div>
+  <div class="body"><slot /></div>
+</aside>
+
+<style>
+  .pit {
+    margin: 1.8em 0;
+    padding: 0.9em 1.2em 1em;
+    border: 1px solid color-mix(in srgb, var(--vermilion) 35%, var(--line));
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--vermilion-soft) 60%, var(--surface));
+  }
+
+  .label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    align-items: center;
+    color: var(--vermilion);
+    font-size: 0.85rem;
+  }
+
+  .label strong {
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    background: none;
+  }
+
+  .body :global(> :first-child) {
+    margin-top: 0.3em;
+  }
+</style>

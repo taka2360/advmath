@@ -1,0 +1,258 @@
+---
+order: 11
+title: バウムクーヘン積分とパップス・ギュルダンの定理
+hook: 回転体を「輪切り」ではなく「年輪」で切ると、逆関数のいらない一行の積分になる。
+summary: y 軸まわりの回転体を薄い円筒殻（バウムクーヘン）の集まりと見ると、体積は 2π∫x f(x) dx で求まる。さらに、図形の重心が描く道のりと面積の積で体積が出るパップス・ギュルダンの定理へとつながる。
+payoff: 「y = sin x と x 軸で囲まれた部分を y 軸のまわりに回転」のような、逆関数が扱いにくい回転体の体積を一瞬で求め、トーラスのような立体の体積を暗算で検算できるようになる。
+minutes: 35
+outsideType: 技法
+hsPrerequisites:
+  - 回転体の体積（x 軸・y 軸まわり）
+  - 置換積分・部分積分
+  - 導関数の定義とはさみうちの原理
+newTools:
+  - バウムクーヘン積分（円筒殻による体積）
+  - 図形の重心
+  - パップス・ギュルダンの定理
+backToHS: V(t) を「x ≤ t の部分の体積」とおき、V′(t) = 2πt f(t) を不等式ではさんで示す。これで公式自体が高校範囲で証明でき、答案に組み込める。
+edges:
+  prerequisite: []
+  application: []
+  related: [asymptotics]
+aliases:
+  - バウムクーヘン積分
+  - バームクーヘン積分
+  - 円筒殻
+  - シェル法
+  - パップスギュルダン
+  - パップス・ギュルダン
+  - 回転体の体積
+  - 重心
+  - トーラス
+pitfalls:
+  - 図形が回転軸の片側にあること（軸上で接するのは可）。軸をまたぐと重なりが生じ、公式は使えない
+  - 回転角 θ はラジアン。1回転は 2π
+  - パップス・ギュルダンで使うのは「面積の重心」。表面積の定理では「曲線の重心」を使うので混同しない
+  - バウムクーヘン積分の x は回転軸からの距離。軸が y 軸でなければ距離を測り直す
+exercises:
+  - { id: shell-1, title: 放物線の回転体, level: 基本 }
+  - { id: shell-2, title: トーラスの体積, level: 標準 }
+  - { id: shell-3, title: 公式を高校範囲で証明する, level: 標準 }
+  - { id: shell-4, title: 三角形の回転体, level: 発展 }
+map: { x: 12, y: 92, group: 解析, label: バウムクーヘン積分 }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import ShellVolume from '../../components/interactive/ShellVolume.astro';
+
+<Layer id="intuition">輪切りではなく、年輪で切る</Layer>
+
+$y = \sin x\ (0 \le x \le \pi)$ と $x$ 軸で囲まれた部分を $y$ 軸のまわりに回転させた立体を考えます。高校の方法では $y$ 軸に垂直に輪切りにするので、$x$ を $y$ で表す必要があり、$\sin x = y$ を $x$ について解くところで困ってしまいます。
+
+そこで、回転軸を中心とする**薄い円筒（年輪）**で切り分けます。半径 $x$、高さ $f(x)$、厚さ $\Delta x$ の円筒殻は、切り開くとほぼ縦 $f(x)$、横 $2\pi x$、厚さ $\Delta x$ の板なので、体積はほぼ $2\pi x f(x)\Delta x$ です。
+
+<ShellVolume>
+  左の長方形1本が、右の円筒殻1枚に対応します。殻の枚数 $n$ を増やすと、殻の体積の和は真の体積 $2\pi^2$ にどんどん近づきます。
+</ShellVolume>
+
+<Layer id="tool">2つの公式</Layer>
+
+<Theorem name="バウムクーヘン積分">
+
+$0 \le a < b$、$f$ は $[a, b]$ で連続で $f(x) \ge 0$ とする。領域 $a \le x \le b,\ 0 \le y \le f(x)$ を $y$ 軸のまわりに1回転してできる立体の体積は
+
+$$
+V = 2\pi\int_a^b x f(x)\,dx .
+$$
+
+</Theorem>
+
+$\sin x$ の例なら $V = 2\pi\displaystyle\int_0^\pi x\sin x\,dx = 2\pi\cdot\pi = 2\pi^2$。部分積分1回で終わります。
+
+<Theorem name="パップス・ギュルダンの定理">
+
+平面図形（面積 $S$）が、同じ平面上の直線 $\ell$ の片側にある（$\ell$ 上で接するのは可）とする。図形の重心と $\ell$ の距離を $R$ とすると、図形を $\ell$ のまわりに角 $\theta$（ラジアン、$0 \le \theta \le 2\pi$）だけ回転させたときに通過する部分の体積は
+
+$$
+V = \theta R S .
+$$
+
+特に1回転なら $V = 2\pi R S$（重心が描く円周の長さ × 面積）。
+
+</Theorem>
+
+たとえば半径 $r$ の円板を、中心から距離 $R\ (\ge r)$ の軸のまわりに1回転させたドーナツ形（トーラス）の体積は、$2\pi R\cdot\pi r^2 = 2\pi^2Rr^2$。
+
+<ShellVolume mode="pappus">
+  $R, r, \theta$ を動かしてください。回転角 $\theta$ に比例して体積が増えます。$r > R$ にすると円板が回転軸をまたぎ、定理の条件から外れます。
+</ShellVolume>
+
+<Pitfall title="図形が回転軸をまたぐと使えない">
+
+軸の両側に図形があると、両側の部分が回転して同じ場所を通り、体積が重複して数えられます。バウムクーヘン積分でも $a \ge 0$（領域が $y$ 軸の右側）が必要です。軸をまたぐ場合は、軸で分けて「外側に来る方」で考えるなど、立体の形を確かめてから立式します。
+
+</Pitfall>
+
+<Pitfall title="面積の重心と、曲線の重心">
+
+パップス・ギュルダンの定理には、**体積**（面積 × 面積の重心の道のり）と**表面積**（曲線の長さ × 曲線の重心の道のり）の2種類があります。同じ図形でも、面積の重心と境界の曲線の重心は一般に違う点です。
+
+</Pitfall>
+
+<Layer id="why">体積の関数を微分する</Layer>
+
+「薄い殻の体積はほぼ $2\pi x f(x)\Delta x$」は直観ですが、次のように高校範囲で厳密に示せます。
+
+<Proof title="バウムクーヘン積分の証明">
+
+$a \le t \le b$ に対し、領域のうち $a \le x \le t$ の部分を回転した体積を $V(t)$ とする（$V(a) = 0$）。$h > 0$ とし、$[t, t+h]$ における $f$ の最小値を $m$、最大値を $M$ とする。$t \le x \le t + h$ の部分を回転したものは、高さ $m$ の円筒殻を含み、高さ $M$ の円筒殻に含まれるので
+
+$$
+\pi\{(t+h)^2 - t^2\}\,m \le V(t+h) - V(t) \le \pi\{(t+h)^2 - t^2\}\,M .
+$$
+
+$h$ で割ると $\pi(2t + h)m \le \dfrac{V(t+h) - V(t)}{h} \le \pi(2t + h)M$。$h \to +0$ のとき $f$ の連続性から $m, M \to f(t)$ なので、はさみうちの原理より右側微分係数は $2\pi t f(t)$。$h < 0$ も同様で、$V'(t) = 2\pi t f(t)$。よって
+
+$$
+V = V(b) - V(a) = \int_a^b 2\pi t f(t)\,dt .
+$$
+
+</Proof>
+
+<Proof title="パップス・ギュルダンの定理（1回転、縦線で表せる図形の場合）">
+
+軸を $y$ 軸とし、図形が $a \le x \le b$ で、各 $x$ での縦の切り口の長さが $h(x)$ であるとする。重心の $x$ 座標は $x_G = \dfrac1S\displaystyle\int_a^b x\,h(x)\,dx$ で定義される。上の証明と同じ議論で $V = 2\pi\displaystyle\int_a^b x\,h(x)\,dx = 2\pi x_G S$。$x_G$ は重心と軸の距離 $R$ にほかならない。角 $\theta$ の回転では、各殻が $\dfrac{\theta}{2\pi}$ だけ掃かれるので $V = \theta R S$。
+
+</Proof>
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> $y = \sin x\ (0 \le x \le \pi)$ と $x$ 軸で囲まれた部分を $y$ 軸のまわりに1回転してできる立体の体積を求めよ。
+
+<Craft kind="idea">
+
+バウムクーヘン積分で $V = 2\pi\displaystyle\int_0^\pi x\sin x\,dx = 2\pi^2$。部分積分 $\displaystyle\int_0^\pi x\sin x\,dx = \Big[-x\cos x\Big]_0^\pi + \int_0^\pi\cos x\,dx = \pi$ だけです。
+
+</Craft>
+
+<Craft kind="direct">
+
+公式を答案の根拠に使ってよいかは試験によって異なります。使うなら、第3層の証明（$V'(t) = 2\pi t f(t)$ のはさみうち）を答案に組み込めば、公式を「証明してから使う」形になり、範囲内の議論として完結します。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例（輪切りと置換積分）．** $0 \le y \le 1$ に対し、$\sin x = y$ をみたす $x$ を $x_1\ (0 \le x_1 \le \frac\pi2),\ x_2\ (\frac\pi2 \le x_2 \le \pi)$ とする。高さ $y$ の切り口は内径 $x_1$、外径 $x_2$ の円環なので
+
+$$
+V = \pi\int_0^1 x_2^2\,dy - \pi\int_0^1 x_1^2\,dy .
+$$
+
+$y = \sin x,\ dy = \cos x\,dx$ と置換すると、第1項は $x: \pi \to \frac\pi2$、第2項は $x: 0 \to \frac\pi2$ に対応し
+
+$$
+V = \pi\int_\pi^{\pi/2} x^2\cos x\,dx - \pi\int_0^{\pi/2} x^2\cos x\,dx = -\pi\int_0^\pi x^2\cos x\,dx .
+$$
+
+部分積分を2回行うと $\displaystyle\int_0^\pi x^2\cos x\,dx = \Big[x^2\sin x\Big]_0^\pi - 2\int_0^\pi x\sin x\,dx = -2\pi$。よって $V = 2\pi^2$。
+
+</Craft>
+
+範囲内の解答は長くなりますが、先にバウムクーヘン積分で $2\pi^2$ を知っていれば、符号や積分区間の向きのミスをすぐに発見できます。
+
+<Layer id="advanced">表面積の定理</Layer>
+
+パップス・ギュルダンの第2の定理は表面積についてのものです。長さ $L$ の平面曲線が直線 $\ell$ の片側にあり、曲線の重心と $\ell$ の距離が $R_c$ のとき、$\ell$ のまわりに1回転してできる曲面の面積は
+
+$$
+A = 2\pi R_c L .
+$$
+
+トーラスの表面積は、半径 $r$ の円周（長さ $2\pi r$、重心は円の中心）を回転させて $2\pi R\cdot2\pi r = 4\pi^2Rr$ です。曲線の重心は $x_c = \dfrac1L\displaystyle\int x\,ds$（$ds$ は曲線の長さの要素）で、面積の重心とは別物であることに注意しましょう。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="shell-1" n={1} title="放物線の回転体" level="基本">
+
+$y = x(2 - x)$ と $x$ 軸で囲まれた部分を $y$ 軸のまわりに1回転してできる立体の体積を求めよ。
+
+<Step kind="answer">
+
+$V = 2\pi\displaystyle\int_0^2 x\cdot x(2 - x)\,dx = 2\pi\int_0^2(2x^2 - x^3)\,dx = 2\pi\left(\frac{16}{3} - 4\right) = \frac{8\pi}{3}$。
+
+検算（パップス・ギュルダン）：面積 $S = \dfrac43$、対称性から重心の $x$ 座標は $1$。$V = 2\pi\cdot1\cdot\dfrac43 = \dfrac{8\pi}{3}$。
+
+答え：$\dfrac{8\pi}{3}$
+
+</Step>
+
+</Exercise>
+
+<Exercise id="shell-2" n={2} title="トーラスの体積" level="標準">
+
+円板 $(x - 3)^2 + y^2 \le 1$ を $y$ 軸のまわりに1回転してできる立体の体積を求めよ。
+
+<Step kind="hint" n={1}>
+円板は $y$ 軸の片側（$2 \le x \le 4$）にあり、重心は中心 $(3, 0)$。
+</Step>
+
+<Step kind="answer">
+
+パップス・ギュルダンより $V = 2\pi\cdot3\cdot\pi = 6\pi^2$。
+
+範囲内の検算：高さ $y$ の切り口は内径 $3 - \sqrt{1 - y^2}$、外径 $3 + \sqrt{1 - y^2}$ の円環で、面積は $12\pi\sqrt{1 - y^2}$。$V = 12\pi\displaystyle\int_{-1}^1\sqrt{1 - y^2}\,dy = 12\pi\cdot\frac\pi2 = 6\pi^2$。
+
+答え：$6\pi^2$
+
+</Step>
+
+</Exercise>
+
+<Exercise id="shell-3" n={3} title="公式を高校範囲で証明する" level="標準">
+
+$f(x)$ は $0 \le x \le 1$ で連続かつ増加し、$f(x) \ge 0$ とする。領域 $0 \le x \le t,\ 0 \le y \le f(x)$ を $y$ 軸のまわりに回転した体積を $V(t)$ とするとき、$V'(t) = 2\pi t f(t)$ を示せ（$0 < t < 1$、右側微分係数でよい）。
+
+<Step kind="hint" n={1}>
+$f$ が増加なので、$[t, t+h]$ での最小値は $f(t)$、最大値は $f(t+h)$ です。
+</Step>
+
+<Step kind="answer">
+
+$h > 0$ に対し、$t \le x \le t + h$ の部分を回転した立体は、高さ $f(t)$ の円筒殻を含み、高さ $f(t+h)$ の円筒殻に含まれるので
+
+$$
+\pi(2th + h^2)f(t) \le V(t+h) - V(t) \le \pi(2th + h^2)f(t+h).
+$$
+
+$h$ で割って $h \to +0$ とすると、$f$ の連続性から両端とも $2\pi t f(t)$ に近づく。はさみうちの原理より、右側微分係数は $2\pi t f(t)$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="shell-4" n={4} title="三角形の回転体" level="発展">
+
+3点 $(1, 0),\ (3, 0),\ (1, 2)$ を頂点とする三角形を $y$ 軸のまわりに1回転してできる立体の体積を、パップス・ギュルダンの定理で求め、バウムクーヘン積分で検算せよ。
+
+<Step kind="hint" n={1}>
+三角形の重心は3頂点の平均。三角形は $y$ 軸の右側にあります。
+</Step>
+
+<Step kind="answer">
+
+面積 $S = 2$、重心の $x$ 座標は $\dfrac{1 + 3 + 1}{3} = \dfrac53$。$V = 2\pi\cdot\dfrac53\cdot2 = \dfrac{20\pi}{3}$。
+
+検算：斜辺は $y = 3 - x$ なので $V = 2\pi\displaystyle\int_1^3 x(3 - x)\,dx = 2\pi\left[\frac{3x^2}{2} - \frac{x^3}{3}\right]_1^3 = 2\pi\left(\frac92 - \frac76\right) = \frac{20\pi}{3}$。
+
+答え：$\dfrac{20\pi}{3}$
+
+</Step>
+
+</Exercise>

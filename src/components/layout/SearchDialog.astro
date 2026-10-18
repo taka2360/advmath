@@ -1,0 +1,193 @@
+<dialog class="search" data-search aria-label="サイト内検索">
+  <form method="dialog" class="search-form" role="search">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"
+      ><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"></circle><path
+        d="m15.5 15.5 5 5"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"></path></svg
+    >
+    <input
+      type="search"
+      name="q"
+      placeholder="用語で検索（例：テイラー、合同式、固有値）"
+      autocomplete="off"
+      aria-label="検索語"
+      data-search-input
+    />
+    <button type="submit" class="close" value="close" aria-label="閉じる">Esc</button>
+  </form>
+  <div class="results" data-search-results aria-live="polite"></div>
+</dialog>
+
+<script>
+  type PagefindResult = { data(): Promise<{ url: string; excerpt: string; meta: { title?: string } }> };
+  type Pagefind = {
+    options(o: Record<string, unknown>): Promise<void>;
+    debouncedSearch(q: string): Promise<{ results: PagefindResult[] } | null>;
+  };
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-search]')!;
+  const input = dialog.querySelector<HTMLInputElement>('[data-search-input]')!;
+  const out = dialog.querySelector<HTMLElement>('[data-search-results]')!;
+  const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+  let pagefind: Pagefind | null = null;
+  let failed = false;
+
+  async function load(): Promise<Pagefind | null> {
+    if (pagefind || failed) return pagefind;
+    try {
+      pagefind = (await import(/* @vite-ignore */ `${base}pagefind/pagefind.js`)) as Pagefind;
+      await pagefind.options({ baseUrl: base, excerptLength: 40 });
+    } catch {
+      failed = true;
+    }
+    return pagefind;
+  }
+
+  function open() {
+    if (dialog.open) return;
+    dialog.showModal();
+    input.select();
+    void load();
+  }
+
+  document.querySelectorAll('[data-search-open]').forEach((b) => b.addEventListener('click', open));
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      open();
+    } else if (e.key === '/' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+      e.preventDefault();
+      open();
+    }
+  });
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  input.addEventListener('input', async () => {
+    const q = input.value.trim();
+    if (!q) {
+      out.innerHTML = '';
+      return;
+    }
+    const pf = await load();
+    if (!pf) {
+      out.innerHTML = '<p class="msg">検索インデックスはビルド後に利用できます。</p>';
+      return;
+    }
+    const res = await pf.debouncedSearch(q);
+    if (!res) return; // より新しい入力で置き換えられた
+    if (!res.results.length) {
+      out.innerHTML = `<p class="msg">「${esc(q)}」に一致する項目はありませんでした。</p>`;
+      return;
+    }
+    const items = await Promise.all(res.results.slice(0, 8).map((r) => r.data()));
+    // excerpt は Pagefind が <mark> 付きでエスケープ済みの HTML を返す
+    out.innerHTML = `<ul>${items
+      .map(
+        (d) =>
+          `<li><a href="${esc(d.url)}"><span class="t">${esc(d.meta.title ?? d.url)}</span><span class="x">${d.excerpt}</span></a></li>`,
+      )
+      .join('')}</ul>`;
+  });
+</script>
+
+<style>
+  .search {
+    width: min(640px, calc(100vw - 24px));
+    max-height: min(70vh, 640px);
+    margin: 10vh auto auto;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.45);
+  }
+
+  .search::backdrop {
+    background: rgb(15 14 12 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+
+  .search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-3);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .close {
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: transparent;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    cursor: pointer;
+    color: var(--ink-3);
+  }
+
+  .results {
+    overflow-y: auto;
+    max-height: calc(min(70vh, 640px) - 64px);
+  }
+
+  .results :global(ul) {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+  }
+
+  .results :global(a) {
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .results :global(a:hover),
+  .results :global(a:focus-visible) {
+    background: var(--surface-2);
+  }
+
+  .results :global(.t) {
+    font-weight: 700;
+  }
+
+  .results :global(.x) {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+
+  .results :global(mark) {
+    background: var(--amber-soft);
+    color: inherit;
+  }
+
+  .results :global(.msg) {
+    margin: 0;
+    padding: 18px;
+    color: var(--ink-3);
+    font-size: 0.9rem;
+  }
+</style>

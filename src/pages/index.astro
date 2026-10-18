@@ -1,0 +1,472 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroTaylor from '../components/home/HeroTaylor.astro';
+import UnitGrid from '../components/home/UnitGrid.astro';
+import ConceptMap from '../components/home/ConceptMap.astro';
+import { allUnits, pad2 } from '../lib/units';
+import { texInline } from '../lib/tex';
+import { unitUrl, url } from '../lib/url';
+
+const units = await allUnits();
+const byId = new Map(units.map((u) => [u.id, u]));
+
+const problems = [
+  { q: '$\\displaystyle\\lim_{x \\to 0}\\frac{x - \\sin x}{x^3}$ を求めよ。', unit: 'taylor', see: '何次の項で差が出るかを見る' },
+  { q: '$x + 2y + 2z = 9$ のとき、$x^2 + y^2 + z^2$ の最小値は。', unit: 'cauchy-schwarz', see: '最小値と等号の点が同時に出る' },
+  { q: '三角形 ABC で $\\sin A + \\sin B + \\sin C$ の最大値は。', unit: 'jensen', see: '凸性から等号条件まで見える' },
+  { q: '$2^{100}$ を $7$ で割った余りは。', unit: 'congruence', see: '余りの周期を読む' },
+  { q: '$a_{n+2} = 4a_{n+1} - 4a_n$ の一般項の形は。', unit: 'recurrence', see: '重解のとき何が現れるか' },
+  { q: '$y = \\sin x\\ (0 \\le x \\le \\pi)$ を $y$ 軸のまわりに回転した体積は。', unit: 'shell-integral', see: '逆関数なしで一行の積分に' },
+  { q: '$(0,0)$ から $(5,5)$ へ、対角線を越えない最短経路の数は。', unit: 'catalan', see: '悪い経路を鏡に映す' },
+  { q: '$\\displaystyle\\lim_{n\\to\\infty}\\frac{\\sqrt[n]{n!}}{n}$ を求めよ。', unit: 'asymptotics', see: '和を積分ではさむ' },
+].map((p) => ({ ...p, html: texInline(p.q), u: byId.get(p.unit)! }));
+
+const layers = [
+  { n: '1', name: '直観', text: '動かせる図で、何が起きているかを先につかむ。ここだけ読んでも、問題の見え方は変わります。' },
+  { n: '2', name: '道具', text: '定理を、仮定と等号条件まで含めて正確に。条件を外したときに何が壊れるかも見ます。' },
+  { n: '3', name: 'なぜ', text: '証明は、できる限り高校数学で追える形に。範囲外の定理も、多くは範囲内の道具で証明できます。' },
+  { n: '4', name: '答案', text: '発想として使う・そのまま書く・高校数学で書き直す。答案での扱い方を、単元ごとに具体例で。' },
+];
+---
+
+<BaseLayout>
+  <section class="hero wrap">
+    <div class="hero-text">
+      <p class="eyebrow">無料・登録不要 ／ 高校生のための発展数学</p>
+      <h1><span class="ph">教科書の</span><span class="ph">一歩外で、</span><br /><span class="ph">入試の</span><span class="ph">見え方が</span><span class="ph">変わる。</span></h1>
+      <p class="lead">
+        テイラー展開、行列、合同式、カタラン数——大学で学ぶ道具のうち、二次試験の問題を「上から」見渡せるようにしてくれるものを12単元に絞りました。触って直観をつかみ、定理を条件まで正確に知り、答案では高校数学に書き直す。そこまでを一続きで学べます。
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href={unitUrl(units[0]!.id)}>単元1から始める</a>
+        <a class="btn" href="#problems">問題から探す</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <HeroTaylor />
+    </div>
+  </section>
+
+  <nav class="wrap doors" aria-label="3つの入口">
+    <a href="#problems" class="door">
+      <span class="door-n">入口 1</span>
+      <strong>問題から入る</strong>
+      <span>見覚えのある入試の形から、それを上から見る道具へ。</span>
+    </a>
+    <a href={url('map/')} class="door">
+      <span class="door-n">入口 2</span>
+      <strong>地図から入る</strong>
+      <span>12単元のつながりを俯瞰して、自分の興味から辿る。</span>
+    </a>
+    <a href="#units" class="door">
+      <span class="door-n">入口 3</span>
+      <strong>3分で触る</strong>
+      <span>どの単元も冒頭の図だけで核心がつかめるように。</span>
+    </a>
+  </nav>
+
+  <section class="wrap section" id="problems" aria-labelledby="problems-h">
+    <header class="section-head">
+      <p class="eyebrow">Entry 1</p>
+      <h2 id="problems-h">この問題、上から見えていますか</h2>
+      <p>どれも二次試験で見かける形です。高校数学だけでも解けますが、少し外側の道具を知っていると、答えの形と方針が最初から見えます。</p>
+    </header>
+    <ul class="problems">
+      {
+        problems.map((p) => (
+          <li>
+            <a href={unitUrl(p.u.id)} class="problem">
+              <span class="pq" set:html={p.html} />
+              <span class="pa">
+                <span class="pa-num">{pad2(p.u.data.order)}</span>
+                <span class="pa-body">
+                  <span class="pa-title">{p.u.data.title}</span>
+                  <span class="pa-see">{p.see}</span>
+                </span>
+                <span class="pa-arrow" aria-hidden="true">→</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="wrap section" id="units" aria-labelledby="units-h">
+    <header class="section-head">
+      <p class="eyebrow">Entry 3</p>
+      <h2 id="units-h">12の単元</h2>
+      <p>上の帯の色は分野（朱：解析、藍：線形、緑：離散）、右上は「何が範囲外か」の種類です。</p>
+    </header>
+    <UnitGrid units={units} />
+  </section>
+
+  <section class="wrap section layers" aria-labelledby="layers-h">
+    <header class="section-head">
+      <p class="eyebrow">How to read</p>
+      <h2 id="layers-h">どの単元も、4つの層でできている</h2>
+      <p>上の層だけ読んでも成立するように書いています。どこまで深く読むかは、あなたが決めてください。</p>
+    </header>
+    <ol class="layer-list">
+      {
+        layers.map((l) => (
+          <li>
+            <span class="layer-n">{l.n}</span>
+            <strong>{l.name}</strong>
+            <p>{l.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <aside class="kinds">
+      <h3>「範囲外」には3種類ある</h3>
+      <dl>
+        <div><dt><span class="chip" data-type="道具">道具</span></dt><dd>行列・合同式・外積など、道具そのものが高校で扱われないもの。</dd></div>
+        <div><dt><span class="chip" data-type="一般化">一般化</span></dt><dd>高校で扱う関数やベクトルを、より一般的な定理で見るもの。</dd></div>
+        <div><dt><span class="chip" data-type="技法">技法</span></dt><dd>結論は高校範囲でも、凸性や積分評価など発展的な考え方で導くもの。</dd></div>
+      </dl>
+    </aside>
+  </section>
+
+  <section class="wrap section" aria-labelledby="map-h">
+    <header class="section-head">
+      <p class="eyebrow">Entry 2</p>
+      <h2 id="map-h">単元どうしは、つながっている</h2>
+      <p>テイラー展開は極限にも不等式にも効き、行列は漸化式に化けます。<a href={url('map/')}>大きな地図で見る →</a></p>
+    </header>
+    <div class="map-box"><ConceptMap units={units} compact /></div>
+  </section>
+
+  <section class="wrap section promise" aria-labelledby="promise-h">
+    <h2 id="promise-h">この教材の約束</h2>
+    <ul>
+      <li><strong>ずっと無料</strong>登録も広告もありません。</li>
+      <li><strong>追跡しない</strong>アクセス解析も、第三者のサーバーへの通信もありません。演習の記録はあなたの端末の中だけに残ります。</li>
+      <li><strong>自由に使える</strong>本文・図・問題は CC BY 4.0。出典を示せば授業でもプリントでも使えます。</li>
+      <li><strong>誠実に書く</strong>定理は条件まで正確に。採点基準など確かめられないことは断定しません。</li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 24px 48px;
+    align-items: center;
+    padding-top: clamp(2.5rem, 6vw, 5.5rem);
+    padding-bottom: 2rem;
+  }
+
+  @media (min-width: 960px) {
+    .hero {
+      grid-template-columns: 1.05fr 1fr;
+    }
+  }
+
+  h1 {
+    margin: 0.5rem 0 1rem;
+    font-size: clamp(1.9rem, 1.2rem + 2.9vw, 3.1rem);
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+
+  .ph {
+    display: inline-block;
+  }
+
+  .lead {
+    margin: 0;
+    max-width: 34em;
+    color: var(--ink-2);
+    line-height: 1.95;
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 1.6rem;
+  }
+
+  .cta .btn {
+    min-height: 46px;
+    padding: 0.5em 1.4em;
+    font-size: 0.95rem;
+  }
+
+  .hero-figure {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .doors {
+    display: grid;
+    gap: 12px;
+    margin-top: 1.5rem;
+  }
+
+  @media (min-width: 760px) {
+    .doors {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .door {
+    display: grid;
+    gap: 4px;
+    padding: 18px 20px;
+    border-top: 2px solid var(--ink);
+    color: var(--ink);
+    text-decoration: none;
+    background: linear-gradient(var(--surface), transparent);
+  }
+
+  .door:hover strong {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .door-n {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--vermilion);
+  }
+
+  .door strong {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+  }
+
+  .door span:last-child {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+  }
+
+  .section {
+    margin-top: clamp(4rem, 9vw, 7rem);
+  }
+
+  .section-head {
+    max-width: 44em;
+    margin-bottom: 1.8rem;
+  }
+
+  .section-head h2 {
+    margin: 0.3rem 0 0.6rem;
+    font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.2rem);
+  }
+
+  .section-head p:last-child {
+    margin: 0;
+    color: var(--ink-2);
+  }
+
+  .problems {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 760px) {
+    .problems {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .problem {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 14px;
+    height: 100%;
+    padding: 18px 20px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+
+  .problem:hover {
+    border-color: var(--ink-3);
+  }
+
+  .pq {
+    font-size: 1.02rem;
+    line-height: 1.9;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .pa {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line-strong);
+  }
+
+  .pa-num {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    color: var(--vermilion);
+  }
+
+  .pa-body {
+    display: grid;
+    flex: 1;
+    line-height: 1.5;
+  }
+
+  .pa-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .pa-see {
+    font-size: 0.8rem;
+    color: var(--ink-3);
+  }
+
+  .pa-arrow {
+    color: var(--ink-3);
+    transition: transform 0.15s;
+  }
+
+  .problem:hover .pa-arrow {
+    transform: translateX(4px);
+    color: var(--ink);
+  }
+
+  .layers {
+    display: grid;
+    gap: 24px 48px;
+  }
+
+  @media (min-width: 960px) {
+    .layers {
+      grid-template-columns: 1.5fr 1fr;
+    }
+
+    .layers .section-head {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .layer-list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+
+  .layer-list li {
+    display: grid;
+    grid-template-columns: 3rem auto;
+    gap: 0 12px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .layer-n {
+    grid-row: span 2;
+    font-family: var(--font-serif);
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--vermilion);
+  }
+
+  .layer-list strong {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+  }
+
+  .layer-list p {
+    margin: 2px 0 0;
+    color: var(--ink-2);
+    font-size: 0.92rem;
+  }
+
+  .kinds {
+    align-self: start;
+    padding: 20px 22px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-2);
+  }
+
+  .kinds h3 {
+    margin: 0 0 0.8rem;
+    font-size: 1.05rem;
+  }
+
+  .kinds dl {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+  }
+
+  .kinds dd {
+    margin: 4px 0 0;
+    font-size: 0.88rem;
+    color: var(--ink-2);
+  }
+
+  .map-box {
+    overflow-x: auto;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  .map-box :global(svg) {
+    min-width: 640px;
+  }
+
+  .promise {
+    padding: clamp(1.6rem, 4vw, 2.8rem);
+    border-radius: var(--radius-lg);
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .promise h2 {
+    margin: 0 0 1.2rem;
+    font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
+  }
+
+  .promise ul {
+    display: grid;
+    gap: 14px 32px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 760px) {
+    .promise ul {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .promise li {
+    display: grid;
+    gap: 2px;
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--bg) 78%, transparent);
+  }
+
+  .promise strong {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    color: var(--bg);
+  }
+</style>

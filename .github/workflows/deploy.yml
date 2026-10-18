@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: 型チェックとリンク規約
+        run: npm run check
+      - name: 数学関数の単体テスト
+        run: npm test
+      - name: ビルドと検索インデックス
+        run: npm run build
+      - name: 成果物の検査 (数式・リンク・外部通信)
+        run: node scripts/check-dist.mjs
+      - name: ブラウザテスト
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+
+  build:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: withastro/action@v6
+        with:
+          node-version: 24
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

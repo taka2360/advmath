@@ -1,0 +1,66 @@
+---
+interface Props {
+  kind: 'hint' | 'approach' | 'answer';
+  /** ヒントの番号 */
+  n?: number;
+}
+const { kind, n } = Astro.props;
+const label = kind === 'hint' ? `ヒント${n ? ` ${n}` : ''}` : kind === 'approach' ? '方針' : '解答';
+---
+
+<details class="step" data-kind={kind}>
+  <summary><span>{label}</span></summary>
+  <div class="body"><slot /></div>
+</details>
+
+<style>
+  .step {
+    border-top: 1px solid var(--line);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.6em 0;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::before {
+    content: '';
+    width: 0.5em;
+    height: 0.5em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+  }
+
+  .step[open] > summary::before {
+    transform: rotate(45deg);
+  }
+
+  .step[data-kind='answer'] summary {
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  summary:hover {
+    color: var(--ink);
+  }
+
+  .body {
+    padding: 0 0 1em 1.1em;
+  }
+
+  .body :global(> :first-child) {
+    margin-top: 0;
+  }
+</style>

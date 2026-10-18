@@ -1,0 +1,92 @@
+---
+/**
+ * インタラクティブ図の共通の枠。
+ * 図本体 (scene) はビルド時に同じ scene 関数で描いた静的 SVG で、JS が動けば操作に応じて描き直される。
+ */
+interface Props {
+  name: string;
+  title: string;
+  state: unknown;
+  scene: string;
+  readout?: string;
+  width: number;
+  height: number;
+  ariaLabel: string;
+  hint?: string;
+  legend?: Array<{ label: string; color: string; kind?: 'line' | 'area' | 'dot' }>;
+}
+
+const { name, title, state, scene, readout, width, height, ariaLabel, hint, legend = [] } = Astro.props;
+---
+
+<figure class="fig" data-figure={name} data-state={JSON.stringify(state)}>
+  <div class="fig-head">
+    <h3 class="fig-title">{title}</h3>
+    {
+      legend.length > 0 && (
+        <span class="legend">
+          {legend.map((l) => (
+            <span class={`lg ${l.kind ?? 'line'}`} style={`--c: ${l.color}`}>
+              {l.label}
+            </span>
+          ))}
+        </span>
+      )
+    }
+  </div>
+  <svg class="fig-canvas" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel}>
+    <g data-k="scene" set:html={scene} />
+    <slot name="overlay" />
+  </svg>
+  {hint && <p class="fig-hint fig-hint-line">{hint}</p>}
+  {
+    Astro.slots.has('controls') && (
+      <div class="fig-controls">
+        <slot name="controls" />
+      </div>
+    )
+  }
+  {readout !== undefined && <div class="fig-readout" data-k="readout" aria-live="polite" set:html={readout} />}
+  <figcaption class="fig-caption"><slot /></figcaption>
+</figure>
+
+<style>
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+  }
+
+  .lg::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 2px;
+    background: var(--c);
+  }
+
+  .lg.area::before {
+    height: 10px;
+    opacity: 0.35;
+  }
+
+  .lg.dot::before {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  .fig-hint-line {
+    margin: 0;
+    padding: 0 18px 10px;
+  }
+
+  .fig-caption:empty {
+    display: none;
+  }
+</style>

@@ -1,0 +1,112 @@
+---
+import { TAYLOR_FNS, evalTaylor, taylorCoefficients } from '../../math/taylor';
+import { fnPath, gridSvg, type View } from '../../lib/plot';
+
+const W = 640;
+const H = 400;
+const v: View = { xMin: -8, xMax: 8, yMin: -2.5, yMax: 2.5, width: W, height: H };
+const degrees = [1, 3, 5, 7, 9, 11, 13, 15, 17];
+const paths = degrees.map((n) => {
+  const c = taylorCoefficients(TAYLOR_FNS.sin, 0, n);
+  return { n, d: fnPath((x) => evalTaylor(c, 0, x), v, { samples: 500 }) };
+});
+const initial = 7;
+---
+
+<figure class="hero-fig" data-hero-taylor>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="sin x のグラフに、次数を上げたテイラー多項式が次々に重なっていくアニメーション">
+    <g set:html={gridSvg(v, 1)} />
+    <path class="sin" d={fnPath(Math.sin, v, { samples: 500 })}></path>
+    {paths.map((p) => <path class="poly" data-n={p.n} d={p.d} data-off={p.n !== initial ? '' : undefined} />)}
+  </svg>
+  <figcaption>
+    <span class="cap-f">sin x</span>と、その<span class="cap-p"><span data-hero-n>{initial}</span> 次のテイラー多項式</span>
+  </figcaption>
+</figure>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-hero-taylor]');
+  if (root && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const polys = Array.from(root.querySelectorAll<SVGPathElement>('path[data-n]'));
+    const label = root.querySelector<HTMLElement>('[data-hero-n]')!;
+    let i = polys.findIndex((p) => !p.hasAttribute('data-off'));
+    let timer = 0;
+    const step = () => {
+      polys[i]!.setAttribute('data-off', '');
+      i = (i + 1) % polys.length;
+      polys[i]!.removeAttribute('data-off');
+      label.textContent = polys[i]!.dataset.n!;
+    };
+    const start = () => {
+      if (!timer) timer = window.setInterval(step, 1300);
+    };
+    const stop = () => {
+      window.clearInterval(timer);
+      timer = 0;
+    };
+    // 画面外・タブ非表示のときは止める
+    new IntersectionObserver(([e]) => (e!.isIntersecting ? start() : stop())).observe(root);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+  }
+</script>
+
+<style>
+  .hero-fig {
+    margin: 0;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .sin {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2.4;
+  }
+
+  .poly[data-off] {
+    display: none;
+  }
+
+  .poly {
+    fill: none;
+    stroke: var(--vermilion);
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .poly:not([data-off]) {
+      animation: draw 1.1s ease-out;
+    }
+  }
+
+  @keyframes draw {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  figcaption {
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    text-align: center;
+  }
+
+  .cap-f {
+    color: var(--ink);
+    margin-right: 0.2em;
+  }
+
+  .cap-p {
+    color: var(--vermilion);
+    margin-left: 0.2em;
+  }
+</style>

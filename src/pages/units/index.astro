@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import UnitGrid from '../../components/home/UnitGrid.astro';
+import { allUnits } from '../../lib/units';
+
+const units = await allUnits();
+const groups = ['解析', '線形', '離散'] as const;
+const notes: Record<(typeof groups)[number], string> = {
+  解析: '極限・微分・積分の道具。近似と評価で、式の「大きさ」を読む。',
+  線形: 'ベクトルと行列。図形と連立方程式を、変換として見る。',
+  離散: '整数と数え上げ。余り・漸化式・対応づけで、無限や膨大な場合を扱う。',
+};
+---
+
+<BaseLayout title="単元一覧" description="範囲の外側で学べる12単元の一覧。解析・線形・離散の3分野。">
+  <header class="wrap page-head">
+    <p class="eyebrow">Units</p>
+    <h1>単元一覧</h1>
+    <p>どの単元から読んでもかまいません。前提が必要なときは単元の冒頭に書いてあります。</p>
+  </header>
+  {
+    groups.map((g) => (
+      <section class="wrap group" aria-labelledby={`g-${g}`}>
+        <h2 id={`g-${g}`}>{g}</h2>
+        <p class="note">{notes[g]}</p>
+        <UnitGrid units={units.filter((u) => u.data.map.group === g)} />
+      </section>
+    ))
+  }
+</BaseLayout>
+
+<style>
+  .group {
+    margin-top: 2.6rem;
+  }
+
+  .group h2 {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+
+  .note {
+    margin: 0.2rem 0 1rem;
+    color: var(--ink-2);
+    font-size: 0.92rem;
+  }
+</style>

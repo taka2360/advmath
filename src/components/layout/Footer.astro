@@ -1,0 +1,91 @@
+---
+import { url } from '../../lib/url';
+import Logo from './Logo.astro';
+---
+
+<footer class="site-footer">
+  <div class="wrap grid">
+    <div class="about">
+      <div class="brand"><Logo size={26} /><span>範囲の外側</span></div>
+      <p>
+        高校数学のすぐ外側にある道具を、直観・定理・証明・答案の作法の4層で学ぶ無料の教材です。登録・広告・アクセス解析はありません。
+      </p>
+    </div>
+    <nav aria-label="フッター">
+      <a href={url('units/')}>単元一覧</a>
+      <a href={url('map/')}>概念マップ</a>
+      <a href={url('review/')}>復習リスト</a>
+      <a href={url('about/')}>この教材について</a>
+      <a href={url('privacy/')}>プライバシー</a>
+      <a href="https://github.com/taka2360/advmath">ソースコード</a>
+    </nav>
+    <p class="license">
+      教材の本文・図・問題は <a href="https://creativecommons.org/licenses/by/4.0/deed.ja">CC BY 4.0</a>、ソースコードは MIT ライセンスで公開しています。出典を示せば、授業や自習資料に自由に使えます。
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 6rem;
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+    font-size: 0.88rem;
+    color: var(--ink-2);
+  }
+
+  .grid {
+    display: grid;
+    gap: 1.5rem 3rem;
+  }
+
+  @media (min-width: 800px) {
+    .grid {
+      grid-template-columns: 1.4fr 1fr;
+    }
+    .license {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 1rem;
+  }
+
+  .about p {
+    margin: 0.6rem 0 0;
+    max-width: 34em;
+  }
+
+  nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 20px;
+    align-content: start;
+  }
+
+  nav a {
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+
+  .license {
+    margin: 0;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: 0.8rem;
+  }
+</style>

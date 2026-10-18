@@ -1,0 +1,162 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { allUnits } from '../lib/units';
+import { unitUrl } from '../lib/url';
+
+const units = await allUnits();
+// 演習 id → 単元・題名 の対応表 (ブラウザ側で記録と突き合わせる)
+const index = Object.fromEntries(
+  units.flatMap((u) =>
+    u.data.exercises.map((e, i) => [
+      e.id,
+      { unit: u.data.title, order: u.data.order, n: i + 1, title: e.title, href: unitUrl(u.id, e.id) },
+    ]),
+  ),
+);
+const total = Object.keys(index).length;
+---
+
+<BaseLayout title="復習リスト" description="演習で「もう一度」を選んだ問題と、解けた問題の一覧。記録はこの端末の中だけに保存されます。" noindex>
+  <header class="wrap page-head">
+    <p class="eyebrow">Review</p>
+    <h1>復習リスト</h1>
+    <p>演習で「もう一度」を選んだ問題がここに集まります。記録はこの端末のブラウザの中だけにあり、どこにも送信されません。</p>
+  </header>
+  <div class="wrap review" data-review data-index={JSON.stringify(index)} data-total={total}>
+    <p class="summary" data-summary>記録を読み込んでいます…</p>
+    <section aria-labelledby="r-review">
+      <h2 id="r-review">もう一度解く</h2>
+      <ul data-list="review"></ul>
+      <p class="empty" data-empty="review">まだありません。演習の「もう一度」を押すとここに追加されます。</p>
+    </section>
+    <section aria-labelledby="r-solved">
+      <h2 id="r-solved">解けた</h2>
+      <ul data-list="solved"></ul>
+      <p class="empty" data-empty="solved">まだありません。</p>
+    </section>
+    <div class="reset">
+      <button type="button" class="btn" data-reset>すべての記録を消去</button>
+      <button type="button" class="btn danger" data-reset-confirm hidden>本当に消去する</button>
+      <span class="msg" data-msg aria-live="polite"></span>
+    </div>
+  </div>
+  <noscript><p class="wrap">この機能には JavaScript が必要です。</p></noscript>
+</BaseLayout>
+
+<script>
+  import { clearAll, load } from '../lib/progress';
+
+  type Entry = { unit: string; order: number; n: number; title: string; href: string };
+  const root = document.querySelector<HTMLElement>('[data-review]')!;
+  const index = JSON.parse(root.dataset.index!) as Record<string, Entry>;
+  const total = Number(root.dataset.total);
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  function render() {
+    const p = load().problems;
+    for (const state of ['review', 'solved'] as const) {
+      const items = Object.entries(p)
+        .filter(([id, v]) => v.state === state && index[id])
+        .map(([id, v]) => ({ ...index[id]!, at: v.updatedAt }))
+        .sort((a, b) => a.order - b.order || a.n - b.n);
+      root.querySelector(`[data-list="${state}"]`)!.innerHTML = items
+        .map(
+          (e) =>
+            `<li><a href="${esc(e.href)}"><span class="u">${String(e.order).padStart(2, '0')} ${esc(e.unit)}</span><span class="t">演習 ${e.n}　${esc(e.title)}</span></a></li>`,
+        )
+        .join('');
+      (root.querySelector(`[data-empty="${state}"]`) as HTMLElement).hidden = items.length > 0;
+    }
+    const solved = Object.entries(p).filter(([id, v]) => v.state === 'solved' && index[id]).length;
+    const review = Object.entries(p).filter(([id, v]) => v.state === 'review' && index[id]).length;
+    root.querySelector('[data-summary]')!.textContent = `全 ${total} 問のうち　解けた ${solved} 問 ／ もう一度 ${review} 問`;
+  }
+
+  const reset = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+  const confirmBtn = root.querySelector<HTMLButtonElement>('[data-reset-confirm]')!;
+  const msg = root.querySelector<HTMLElement>('[data-msg]')!;
+  reset.addEventListener('click', () => {
+    confirmBtn.hidden = false;
+    confirmBtn.focus();
+    msg.textContent = '消去すると元に戻せません。';
+  });
+  confirmBtn.addEventListener('click', () => {
+    msg.textContent = clearAll() ? '記録を消去しました。' : 'この環境では記録にアクセスできませんでした。';
+    confirmBtn.hidden = true;
+    render();
+  });
+  window.addEventListener('advmath:progress', render);
+  render();
+</script>
+
+<style>
+  .summary {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+  }
+
+  section {
+    margin-top: 2rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  ul :global(a) {
+    display: grid;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  ul :global(a:hover) {
+    border-color: var(--line-strong);
+  }
+
+  ul :global(.u) {
+    font-size: 0.78rem;
+    color: var(--ink-3);
+  }
+
+  ul :global(.t) {
+    font-weight: 700;
+  }
+
+  .empty {
+    color: var(--ink-3);
+    font-size: 0.9rem;
+  }
+
+  .reset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .danger {
+    border-color: var(--vermilion);
+    color: var(--vermilion);
+  }
+
+  .msg {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+  }
+</style>

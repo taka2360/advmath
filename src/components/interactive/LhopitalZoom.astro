@@ -1,0 +1,67 @@
+---
+import Figure from './Figure.astro';
+import { LIMIT_PAIRS } from '../../math/limits';
+import { H, W, lhopitalReadout, lhopitalScene, type LhopitalState } from '../../lib/scenes/lhopital';
+
+interface Props {
+  pair?: string;
+}
+const st: LhopitalState = { pair: Astro.props.pair ?? 'sin', zoom: 0 };
+---
+
+<Figure
+  name="lhopital"
+  title="0/0 の近くを拡大する"
+  state={st}
+  scene={lhopitalScene(st)}
+  readout={lhopitalReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="分子 f(x) と分母 g(x) のグラフを x = 0 の近くで拡大した図"
+  legend={[
+    { label: '分子 f(x)', color: 'var(--ink)' },
+    { label: '分母 g(x)', color: 'var(--accent)' },
+  ]}
+>
+  <Fragment slot="controls">
+    <div class="ctl">
+      <span>極限</span>
+      <div class="seg" data-k="pairs">
+        {
+          LIMIT_PAIRS.map((p) => (
+            <button type="button" data-value={p.id} aria-pressed={p.id === st.pair ? 'true' : 'false'}>
+              {p.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <label>
+      <span>拡大率 <span class="ctl-value" data-out="zoom">1</span> 倍</span>
+      <input type="range" min="0" max="3" step="0.01" value="0" data-in="zoom" />
+    </label>
+  </Fragment>
+  <slot />
+</Figure>
+
+<script>
+  import { $, onFigures, onInput, segmented } from '../../lib/interaction';
+  import { lhopitalReadout, lhopitalScene, type LhopitalState } from '../../lib/scenes/lhopital';
+
+  onFigures('lhopital', (root) => {
+    const st = JSON.parse(root.dataset.state!) as LhopitalState;
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = lhopitalScene(st);
+      $(root, '[data-k="readout"]').innerHTML = lhopitalReadout(st);
+      $(root, '[data-out="zoom"]').textContent = Math.round(10 ** st.zoom).toLocaleString();
+    };
+    segmented($(root, '[data-k="pairs"]'), (v) => {
+      st.pair = v;
+      draw();
+    });
+    onInput($<HTMLInputElement>(root, '[data-in="zoom"]'), (el) => {
+      st.zoom = Number(el.value);
+      draw();
+    });
+  });
+</script>

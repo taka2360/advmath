@@ -1,0 +1,257 @@
+---
+order: 2
+title: ロピタルの定理
+hook: 0/0 の正体は「傾きの比」。ただし条件を外すと平気で嘘をつく。
+summary: 0/0 型の極限を、分子と分母の導関数の比に置き換える定理。便利な反面、仮定を外したときの誤用と循環論法が答案の典型的な失点源になる。
+payoff: 0/0 型や ∞/∞ 型の極限の値をすばやく見当づけられ、自分の計算が「定理の仮定を満たしているか」を点検できるようになる。
+minutes: 30
+outsideType: 一般化
+hsPrerequisites:
+  - 数学IIIの極限と微分
+  - 平均値の定理（ロルの定理）
+  - 導関数の定義
+newTools:
+  - ロピタルの定理（0/0 型・∞/∞ 型）
+  - コーシーの平均値の定理
+backToHS: 導関数の定義に持ち込むか、積分や不等式で分子をはさんで「はさみうちの原理」で示す。
+edges:
+  prerequisite: []
+  application: []
+  related: []
+aliases:
+  - ロピタル
+  - l'Hôpital
+  - 不定形
+  - 0/0
+  - コーシーの平均値の定理
+pitfalls:
+  - 仮定：a の近く（a を除く）で f, g が微分可能で g′(x) ≠ 0
+  - 不定形（0/0 または ∞/∞）でなければ使えない。使うと誤った値が出る
+  - f′/g′ の極限が存在しないとき、定理は何も言わない（f/g の極限は存在しうる）
+  - lim sin x / x = 1 をロピタルで示すのは循環論法
+  - ∞/∞ 型では分母が発散すればよく、分子の発散は仮定に不要
+exercises:
+  - { id: lhopital-1, title: 2回使う極限, level: 基本 }
+  - { id: lhopital-2, title: 誤った計算を見抜く, level: 基本 }
+  - { id: lhopital-3, title: 循環論法を避ける, level: 標準 }
+  - { id: lhopital-4, title: 定理が黙るとき, level: 発展 }
+map: { x: 6, y: 44, group: 解析, label: ロピタルの定理 }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import LhopitalZoom from '../../components/interactive/LhopitalZoom.astro';
+
+<Layer id="intuition">0/0 を拡大すると、2本の直線になる</Layer>
+
+$x \to 0$ で分子も分母も $0$ に近づく $\dfrac{\sin x}{x}$ のような極限は、そのままでは値が分かりません。しかし $x = 0$ の近くをどんどん拡大すると、なめらかな曲線は**接線とほとんど区別がつかなくなります**。分子は傾き $f'(0)$ の直線、分母は傾き $g'(0)$ の直線に見え、比は傾きの比 $\dfrac{f'(0)}{g'(0)}$ に近づくはずです。
+
+<LhopitalZoom>
+  拡大率を上げると、分子と分母のグラフは原点を通る曲線から「ほぼ直線」に変わっていきます。下の表は、$x$ を $0$ に近づけたときの $f/g$ と $f'/g'$ の値です。3つ目の例では $f'/g'$ が収束しないことに注目してください。
+</LhopitalZoom>
+
+2つ目の例 $\dfrac{e^x - 1 - x}{x^2}$ では、分子も分母も傾きが $0$ です。拡大しても直線にはならず放物線のままですが、それでも比は $\dfrac12$ に近づきます。これは「導関数の比も $0/0$ だから、もう一度同じことをする」ことに対応します。
+
+<Layer id="tool">ロピタルの定理</Layer>
+
+<Theorem name="ロピタルの定理（0/0 型）">
+
+$a$ を含むある開区間 $I$ で、$f, g$ は（$x = a$ を除いて）微分可能で、$x \ne a$ では $g'(x) \ne 0$ とする。$\displaystyle\lim_{x \to a} f(x) = \lim_{x \to a} g(x) = 0$ であって、さらに
+
+$$
+\lim_{x \to a} \frac{f'(x)}{g'(x)} = L \quad (\text{有限の値、または } \pm\infty)
+$$
+
+が**存在する**ならば、$\displaystyle\lim_{x \to a} \frac{f(x)}{g(x)} = L$ である。片側極限や $x \to \pm\infty$ についても同様に成り立つ。
+
+</Theorem>
+
+仮定の最後の一文が肝心です。定理は「$f'/g'$ の極限が分かっているなら、$f/g$ の極限も同じ」と言っているだけで、**$f'/g'$ の極限がないときには何も主張しません**。
+
+<Pitfall title="不定形でないのに使う">
+
+$\displaystyle\lim_{x \to 0} \frac{e^x + x}{\cos x + x}$ は、代入すれば $\dfrac{1}{1} = 1$ です。ところが分子・分母を微分すると $\dfrac{e^x + 1}{1 - \sin x} \to 2$ となり、誤った値が出ます。分子・分母がともに $0$（または分母が $\pm\infty$）に近づくことを、**使う前に毎回**確認しなければなりません。
+
+</Pitfall>
+
+<Pitfall title="sin x / x → 1 をロピタルで示すと循環論法">
+
+$\displaystyle\lim_{x \to 0}\frac{\sin x}{x} = \lim_{x \to 0}\frac{\cos x}{1} = 1$ は一見正しい計算です。しかし $(\sin x)' = \cos x$ を導く過程で、まさに $\displaystyle\lim_{x\to 0}\frac{\sin x}{x} = 1$ を使っています。証明すべき事実を前提にしているので、これは証明になりません。
+
+</Pitfall>
+
+<Layer id="why">ロルの定理を2つの関数に使う</Layer>
+
+証明の鍵は、平均値の定理を2つの関数の組に拡張した**コーシーの平均値の定理**です。これもロルの定理から高校範囲で導けます。
+
+<Theorem kind="補題" name="コーシーの平均値の定理">
+
+$f, g$ が $[a, x]$ で連続、$(a, x)$ で微分可能で、$(a, x)$ で $g'(t) \ne 0$ ならば、$g(x) \ne g(a)$ であり、
+$\dfrac{f(x) - f(a)}{g(x) - g(a)} = \dfrac{f'(c)}{g'(c)}$ をみたす $c$ が $a < c < x$ に存在する。
+
+</Theorem>
+
+<Proof>
+
+もし $g(x) = g(a)$ ならロルの定理で $g'(d) = 0$ となる $d \in (a, x)$ があり、仮定に反する。よって $g(x) \ne g(a)$。
+
+$h(t) = \{f(t) - f(a)\}\{g(x) - g(a)\} - \{g(t) - g(a)\}\{f(x) - f(a)\}$ とおくと $h(a) = h(x) = 0$。ロルの定理より $h'(c) = 0$ となる $c \in (a, x)$ があり、
+
+$$
+f'(c)\{g(x) - g(a)\} = g'(c)\{f(x) - f(a)\}.
+$$
+
+両辺を $g'(c)\{g(x) - g(a)\} \ne 0$ で割ればよい。
+
+</Proof>
+
+<Proof title="ロピタルの定理の証明（x → a + 0 の場合）">
+
+$f(a) = g(a) = 0$ と定めると、$f, g$ は $a$ で連続になる。$a < x$ をとり、区間 $[a, x]$ にコーシーの平均値の定理を使うと
+
+$$
+\frac{f(x)}{g(x)} = \frac{f(x) - f(a)}{g(x) - g(a)} = \frac{f'(c_x)}{g'(c_x)}, \qquad a < c_x < x .
+$$
+
+$x \to a + 0$ のとき $c_x \to a + 0$ なので、右辺は $L$ に近づく。$x \to a - 0$ も同様。
+
+</Proof>
+
+この証明から、なぜ「$f'/g'$ の極限が存在する」ことが必要なのかが分かります。$c_x$ がどう動くかは制御できないので、$f'/g'$ が**どんな近づき方でも**同じ値に近づくことが保証されていなければ、$f(x)/g(x)$ について何も言えないのです。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> $\displaystyle\lim_{x \to 0}\frac{\log(1+x) - x}{x^2}$ を求めよ。
+
+<Craft kind="idea">
+
+分子・分母とも $0$ に近づくので、微分して $\dfrac{\frac{1}{1+x} - 1}{2x} = -\dfrac{1}{2(1+x)} \to -\dfrac12$。答えの見当は数行でつきます。テイラー展開 $\log(1+x) = x - \dfrac{x^2}{2} + \cdots$ でも同じ値になり、**2つの方法で一致すれば検算になります**。
+
+</Craft>
+
+<Craft kind="direct">
+
+ロピタルの定理を答案に書くなら、(1) 不定形であること、(2) $x = 0$ の近くで $g'(x) = 2x \ne 0$（$x \ne 0$）であること、(3) 導関数の比の極限が存在すること、を明記します。範囲外の定理を答案の根拠として認めるかどうかは、試験の指示や採点方針によって異なります。認められない場合に備え、範囲内の書き方も持っておきましょう。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例．** $\log(1+x) - x = \displaystyle\int_0^x \left(\frac{1}{1+t} - 1\right)dt = -\int_0^x \frac{t}{1+t}\,dt$（$x > -1$）。
+
+$0$ と $x$ の間の $t$ について、$\dfrac{1}{1+t}$ は $1$ と $\dfrac{1}{1+x}$ の間にあるので、$x > 0$ でも $-1 < x < 0$ でも
+
+$$
+\int_0^x \frac{t}{1+t}\,dt \ \text{ は } \ \frac{x^2}{2} \ \text{ と } \ \frac{x^2}{2(1+x)} \ \text{ の間にある。}
+$$
+
+よって $\dfrac{\log(1+x) - x}{x^2}$ は $-\dfrac12$ と $-\dfrac{1}{2(1+x)}$ の間にあり、$x \to 0$ で両者とも $-\dfrac12$ に近づく。はさみうちの原理より、求める極限は $-\dfrac12$。
+
+</Craft>
+
+もう1つの定番の書き直しは**導関数の定義に持ち込む**方法です。たとえば $\displaystyle\lim_{x\to0}\frac{e^x - 1}{x}$ は、$f(x) = e^x$ の $x = 0$ での微分係数 $f'(0) = 1$ そのものです。
+
+<Layer id="advanced">∞/∞ 型と、定理が黙る例</Layer>
+
+<Theorem name="ロピタルの定理（∞/∞ 型）">
+
+0/0 型と同じ微分可能性・$g'(x) \ne 0$ の仮定のもとで、$\displaystyle\lim_{x \to a}|g(x)| = \infty$ かつ $\displaystyle\lim_{x \to a}\frac{f'(x)}{g'(x)} = L$ ならば、$\displaystyle\lim_{x \to a}\frac{f(x)}{g(x)} = L$（$a = \pm\infty$ でもよい）。
+
+</Theorem>
+
+意外なことに、**分子が発散することは仮定に要りません**。証明はコーシーの平均値の定理を、$a$ から遠い点を起点にして使う少し込み入ったものになります。
+
+この形で $\displaystyle\lim_{x\to\infty}\frac{x^n}{e^x}$ を考えると、$n$ 回微分して $\dfrac{n!}{e^x} \to 0$ となります。高校範囲では $x > 0$ で $e^x > \dfrac{x^{n+1}}{(n+1)!}$ を示し（増減を $n+1$ 回繰り返す）、$0 < \dfrac{x^n}{e^x} < \dfrac{(n+1)!}{x}$ ではさむのが標準的です。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="lhopital-1" n={1} title="2回使う極限" level="基本">
+
+$\displaystyle\lim_{x \to 0}\frac{e^x - 1 - x}{1 - \cos x}$ を求めよ。ロピタルの定理で値を求めたうえで、高校範囲の答案も書け。
+
+<Step kind="hint" n={1}>
+1回微分すると $\dfrac{e^x - 1}{\sin x}$ で、これもまだ $0/0$ 型です。
+</Step>
+
+<Step kind="hint" n={2}>
+高校範囲では $\dfrac{e^x - 1 - x}{x^2}\cdot\dfrac{x^2}{1 - \cos x}$ と分けます。前半は単元1で扱った極限です。
+</Step>
+
+<Step kind="answer">
+
+ロピタル：$\dfrac{e^x - 1}{\sin x}$ も不定形で、もう一度微分すると $\dfrac{e^x}{\cos x} \to 1$。各段階で分母の導関数 $\sin x,\ \cos x$ は $0$ の近く（$x \ne 0$）で $0$ でない。
+
+高校範囲：$1 - \cos x = 2\sin^2\dfrac{x}{2}$ より $\dfrac{x^2}{1 - \cos x} = 2\left(\dfrac{x/2}{\sin(x/2)}\right)^2 \to 2$。単元1の結果 $\dfrac{e^x - 1 - x}{x^2} \to \dfrac12$ と合わせて、極限は $\dfrac12 \cdot 2 = 1$。
+
+答え：$1$
+
+</Step>
+
+</Exercise>
+
+<Exercise id="lhopital-2" n={2} title="誤った計算を見抜く" level="基本">
+
+次の計算の誤りを指摘し、正しい値を求めよ。
+
+$$
+\lim_{x \to 0}\frac{e^x + x}{\cos x + x} = \lim_{x \to 0}\frac{e^x + 1}{-\sin x + 1} = 2
+$$
+
+<Step kind="approach">
+ロピタルの定理の仮定のうち、どれが満たされていないかを確認します。
+</Step>
+
+<Step kind="answer">
+
+$x \to 0$ のとき分子 $\to 1$、分母 $\to 1$ で、$0/0$ 型でも $\infty/\infty$ 型でもないため、ロピタルの定理は使えない。分子・分母は連続なので、そのまま代入して極限は $\dfrac{1}{1} = 1$。
+
+答え：$1$
+
+</Step>
+
+</Exercise>
+
+<Exercise id="lhopital-3" n={3} title="循環論法を避ける" level="標準">
+
+$\displaystyle\lim_{x \to 0}\frac{\sin x}{x} = 1$ をロピタルの定理で示すことが論理的に問題である理由を説明し、正しい証明の方針を述べよ。
+
+<Step kind="hint" n={1}>
+$(\sin x)' = \cos x$ はどのように導かれたかを思い出しましょう。
+</Step>
+
+<Step kind="answer">
+
+$(\sin x)' = \displaystyle\lim_{h\to0}\frac{\sin(x+h) - \sin x}{h} = \lim_{h\to0}\left\{\cos x\cdot\frac{\sin h}{h} - \sin x\cdot\frac{1 - \cos h}{h}\right\}$ を計算する際に、$\dfrac{\sin h}{h} \to 1$ を使う。つまりロピタルの定理を使う時点で、示したい事実をすでに前提にしており循環している。
+
+正しい方針：$0 < x < \dfrac{\pi}{2}$ で、単位円の扇形と2つの三角形の面積比較から $\sin x < x < \tan x$。これより $\cos x < \dfrac{\sin x}{x} < 1$ となり、はさみうちの原理で右側極限は $1$。$\dfrac{\sin x}{x}$ は偶関数なので左側極限も $1$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="lhopital-4" n={4} title="定理が黙るとき" level="発展">
+
+$\displaystyle\lim_{x\to\infty}\frac{x + \sin x}{x}$ について、
+
+(1) ロピタルの定理の形に当てはめると $f'/g'$ が収束しないことを確かめよ。
+
+(2) それでも極限は存在することを示し、値を求めよ。
+
+<Step kind="hint" n={1}>
+$\dfrac{f'(x)}{g'(x)} = 1 + \cos x$ です。
+</Step>
+
+<Step kind="answer">
+
+(1) $\dfrac{(x + \sin x)'}{(x)'} = 1 + \cos x$ は $0$ と $2$ の間を振動し、$x \to \infty$ で極限をもたない。このとき定理は何も主張しない（$f/g$ の極限が存在しないとは言っていない）。
+
+(2) $\left|\dfrac{x + \sin x}{x} - 1\right| = \dfrac{|\sin x|}{x} \le \dfrac{1}{x} \to 0$。答え：$1$
+
+</Step>
+
+</Exercise>

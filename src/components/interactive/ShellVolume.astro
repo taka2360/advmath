@@ -1,0 +1,153 @@
+---
+import Figure from './Figure.astro';
+import { H, W, volumeReadout, volumeScene, type VolumeState } from '../../lib/scenes/volume';
+
+interface Props {
+  mode?: 'shell' | 'pappus';
+}
+const st: VolumeState = { mode: Astro.props.mode ?? 'shell', n: 8, k: 5, R: 2.2, r: 1, theta: 220 };
+---
+
+<Figure
+  name="volume"
+  title={st.mode === 'shell' ? 'バウムクーヘンのように一枚ずつ' : '重心が描く道のり × 面積'}
+  state={st}
+  scene={volumeScene(st)}
+  readout={volumeReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel={st.mode === 'shell'
+    ? 'y = sin x の下の領域を y 軸のまわりに回転した立体を、円筒殻に分けた図'
+    : '円板を回転軸のまわりに回転させた立体と、重心の描く円弧'}
+>
+  <Fragment slot="controls">
+    {
+      st.mode === 'shell' ? (
+        <>
+          <label>
+            <span>
+              殻の枚数 n = <span class="ctl-value" data-out="n">{st.n}</span>
+            </span>
+            <input type="range" min="2" max="40" step="1" value={st.n} data-in="n" />
+          </label>
+          <label>
+            <span>
+              強調する殻 = <span class="ctl-value" data-out="k">{st.k + 1}</span> 枚目
+            </span>
+            <input type="range" min="0" max={st.n - 1} step="1" value={st.k} data-in="k" />
+          </label>
+        </>
+      ) : (
+        <>
+          <label>
+            <span>
+              軸から重心まで R = <span class="ctl-value" data-out="R">{st.R}</span>
+            </span>
+            <input type="range" min="0.4" max="3" step="0.1" value={st.R} data-in="R" />
+          </label>
+          <label>
+            <span>
+              円板の半径 r = <span class="ctl-value" data-out="r">{st.r}</span>
+            </span>
+            <input type="range" min="0.3" max="2" step="0.1" value={st.r} data-in="r" />
+          </label>
+          <label>
+            <span>
+              回転角 θ = <span class="ctl-value" data-out="theta">{st.theta}</span>°
+            </span>
+            <input type="range" min="0" max="360" step="5" value={st.theta} data-in="theta" />
+          </label>
+        </>
+      )
+    }
+  </Fragment>
+  <slot />
+</Figure>
+
+<style is:global>
+  .fig-canvas .strip {
+    fill: color-mix(in srgb, var(--accent) 16%, transparent);
+    stroke: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+
+  .fig-canvas .strip.on {
+    fill: color-mix(in srgb, var(--vermilion) 45%, transparent);
+    stroke: var(--vermilion);
+  }
+
+  .fig-canvas .solid-edge {
+    fill: none;
+    stroke: var(--ink-3);
+    stroke-width: 1.4;
+  }
+
+  .fig-canvas .shell-line,
+  .fig-canvas .shell-side {
+    fill: none;
+    stroke: var(--vermilion);
+    stroke-width: 2;
+  }
+
+  .fig-canvas .shell-top {
+    fill: color-mix(in srgb, var(--vermilion) 22%, transparent);
+    stroke: var(--vermilion);
+    stroke-width: 2;
+  }
+
+  .fig-canvas .axis-rot {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-dasharray: 10 4 2 4;
+  }
+
+  .fig-canvas .sweep {
+    fill: none;
+    stroke: color-mix(in srgb, var(--accent) 45%, transparent);
+    stroke-width: 1;
+  }
+
+  .fig-canvas .disk {
+    fill: color-mix(in srgb, var(--accent) 22%, transparent);
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+
+  .fig-canvas .disk.end {
+    fill: color-mix(in srgb, var(--accent) 38%, transparent);
+  }
+
+  .fig-canvas .centroid-path {
+    fill: none;
+    stroke: var(--vermilion);
+    stroke-width: 2.5;
+    stroke-dasharray: 6 5;
+  }
+</style>
+
+<script>
+  import { $, onFigures, onInput } from '../../lib/interaction';
+  import { volumeReadout, volumeScene, type VolumeState } from '../../lib/scenes/volume';
+
+  onFigures('volume', (root) => {
+    const st = JSON.parse(root.dataset.state!) as VolumeState;
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = volumeScene(st);
+      $(root, '[data-k="readout"]').innerHTML = volumeReadout(st);
+    };
+    root.querySelectorAll<HTMLInputElement>('input[data-in]').forEach((el) =>
+      onInput(el, () => {
+        const key = el.dataset.in as 'n' | 'k' | 'R' | 'r' | 'theta';
+        st[key] = Number(el.value);
+        if (key === 'n') {
+          const kIn = $<HTMLInputElement>(root, '[data-in="k"]');
+          kIn.max = String(st.n - 1);
+          st.k = Math.min(st.k, st.n - 1);
+          kIn.value = String(st.k);
+          $(root, '[data-out="k"]').textContent = String(st.k + 1);
+        }
+        $(root, `[data-out="${key}"]`).textContent = key === 'k' ? String(st.k + 1) : el.value;
+        draw();
+      }),
+    );
+  });
+</script>

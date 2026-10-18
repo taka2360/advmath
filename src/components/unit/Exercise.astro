@@ -1,0 +1,151 @@
+---
+interface Props {
+  id: string;
+  n: number;
+  title: string;
+  level: '基本' | '標準' | '発展';
+}
+const { id, n, title, level } = Astro.props;
+---
+
+<section class="ex" id={id} data-exercise={id}>
+  <header>
+    <span class="num">演習 {n}</span>
+    <h3>{title}</h3>
+    <span class="lv">{level}</span>
+  </header>
+  <div class="body"><slot /></div>
+  <footer class="self" hidden data-self>
+    <span class="q">自己採点</span>
+    <div class="btns">
+      <button type="button" class="btn" data-state="solved" aria-pressed="false">解けた</button>
+      <button type="button" class="btn" data-state="review" aria-pressed="false">もう一度</button>
+    </div>
+    <span class="msg" data-msg aria-live="polite"></span>
+  </footer>
+</section>
+
+<script>
+  import { getState, setState, type ProblemState } from '../../lib/progress';
+
+  function sync(root: HTMLElement) {
+    const state = getState(root.dataset.exercise!);
+    root.dataset.state = state ?? '';
+    root.querySelectorAll<HTMLButtonElement>('button[data-state]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.state === state));
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-exercise]').forEach((root) => {
+    const self = root.querySelector<HTMLElement>('[data-self]')!;
+    const msg = root.querySelector<HTMLElement>('[data-msg]')!;
+    self.hidden = false;
+    sync(root);
+    root.querySelectorAll<HTMLButtonElement>('button[data-state]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const id = root.dataset.exercise!;
+        const next = b.dataset.state as ProblemState;
+        // 同じボタンをもう一度押すと記録を取り消す
+        const ok = setState(id, getState(id) === next ? undefined : next);
+        msg.textContent = ok ? '' : 'この環境では記録を保存できません（解答の閲覧には影響しません）';
+        sync(root);
+      });
+    });
+  });
+  window.addEventListener('advmath:progress', () =>
+    document.querySelectorAll<HTMLElement>('[data-exercise]').forEach(sync),
+  );
+</script>
+
+<style>
+  .ex {
+    margin: 2rem 0;
+    padding: 1.1em 1.2em 0.4em;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  .ex[data-state='solved'] {
+    border-color: color-mix(in srgb, var(--green) 45%, var(--line));
+  }
+
+  .ex[data-state='review'] {
+    border-color: color-mix(in srgb, var(--amber) 55%, var(--line));
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2em 0.7em;
+  }
+
+  .num {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: var(--vermilion);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.08rem;
+    flex: 1 1 12em;
+  }
+
+  .lv {
+    font-size: 0.75rem;
+    padding: 0 0.6em;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    color: var(--ink-2);
+  }
+
+  .body {
+    padding-bottom: 0.4em;
+  }
+
+  .body :global(> p:first-child) {
+    margin-top: 0.6em;
+  }
+
+  .self {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 0.8em 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .self[hidden] {
+    display: none;
+  }
+
+  .q {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+  }
+
+  .btns {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn[data-state='solved'][aria-pressed='true'] {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--surface);
+  }
+
+  .btn[data-state='review'][aria-pressed='true'] {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--surface);
+  }
+
+  .msg {
+    font-size: 0.8rem;
+    color: var(--vermilion);
+  }
+</style>

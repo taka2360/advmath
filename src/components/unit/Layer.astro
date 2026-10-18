@@ -1,0 +1,10 @@
+---
+import { LAYERS } from '../../lib/layers';
+
+interface Props {
+  id: keyof typeof LAYERS;
+}
+const { id } = Astro.props;
+---
+
+<h2 id={id} data-layer={LAYERS[id]}><slot /></h2>

@@ -1,0 +1,23 @@
+教材コンテンツのライセンス / Content License
+
+このリポジトリの教材コンテンツ（src/content/ 以下の本文・演習問題・解答、
+および図・OGP 画像などのビジュアル）は、クリエイティブ・コモンズ 表示 4.0 国際
+ライセンス（CC BY 4.0）のもとで提供されます。
+
+The educational content in this repository (text, exercises and solutions under
+src/content/, and figures / images) is licensed under the Creative Commons
+Attribution 4.0 International License (CC BY 4.0).
+
+  https://creativecommons.org/licenses/by/4.0/
+  https://creativecommons.org/licenses/by/4.0/legalcode.ja
+
+クレジット表記の例 / Attribution example:
+  「範囲の外側」(https://taka2360.github.io/advmath/) CC BY 4.0
+
+ソースコード（上記以外）は MIT License です（LICENSE を参照）。
+Source code (everything else) is licensed under the MIT License (see LICENSE).
+
+同梱・依存するサードパーティ / Third-party:
+  - KaTeX (MIT License) — 数式の表示とフォント
+  - Zen Old Mincho (SIL Open Font License 1.1) — 見出しの書体 (@fontsource 経由)
+  - Astro (MIT License), Pagefind (MIT License)

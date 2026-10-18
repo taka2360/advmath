@@ -1,0 +1,246 @@
+---
+order: 4
+title: コーシー・シュワルツの不等式
+hook: 「内積は長さの積を超えない」。n 個の変数でも、積分でも同じ形で効く。
+summary: ベクトルの内積の性質 |a·b| ≤ |a||b| を、n 個の数の組や関数の積分にまで広げた不等式。条件付きの最大・最小問題で、答えと等号成立条件を同時に教えてくれる。
+payoff: 「x + 2y + 2z = 9 のとき x² + y² + z² の最小値」のような条件付き最大・最小を、等号成立の点まで含めて一瞬で見抜けるようになる。
+minutes: 30
+outsideType: 一般化
+hsPrerequisites:
+  - ベクトルの内積と成分表示
+  - 2次不等式と判別式
+  - 定積分の基本性質
+newTools:
+  - n 変数のコーシー・シュワルツの不等式
+  - ラグランジュの恒等式
+  - 積分形のコーシー・シュワルツ
+backToHS: 3変数までなら空間ベクトルの内積 a·b = |a||b|cos θ で書ける。それ以上は「t の2次式が常に 0 以上だから判別式 ≤ 0」という証明をそのまま答案に書けばよい。
+edges:
+  prerequisite: []
+  application: []
+  related: [cross-product]
+aliases:
+  - コーシーシュワルツ
+  - シュワルツの不等式
+  - Cauchy-Schwarz
+  - ラグランジュの恒等式
+  - 内積
+  - Engelの形
+  - ティトゥの補題
+pitfalls:
+  - 等号成立は2つの組が一次従属のとき（零ベクトルを含む）。「a_i/b_i が等しい」と書くと b_i = 0 の場合を取りこぼす
+  - 最大・最小問題では、等号が制約条件のもとで実際に成立することを確かめる
+  - 変数は実数であることが前提
+  - 積分形では関数の連続性（または可積分性）が必要
+exercises:
+  - { id: cs-1, title: 直線上の最短距離, level: 基本 }
+  - { id: cs-2, title: 逆数の和, level: 標準 }
+  - { id: cs-3, title: 分数の和を下から押さえる, level: 標準 }
+  - { id: cs-4, title: 積分の不等式, level: 発展 }
+map: { x: 50, y: 46, group: 線形, label: コーシー・シュワルツ }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import CauchyVectors from '../../components/interactive/CauchyVectors.astro';
+
+<Layer id="intuition">差の正体は、平行四辺形の面積</Layer>
+
+平面ベクトル $\vec a, \vec b$ について $\vec a\cdot\vec b = |\vec a||\vec b|\cos\theta$ だから、$(\vec a\cdot\vec b)^2 \le |\vec a|^2|\vec b|^2$ は当然です。では、その**差はいったい何でしょうか**。
+
+<CauchyVectors>
+  2本のベクトルの先端を動かすと、緑の平行四辺形が変形します。差 $|\vec a|^2|\vec b|^2 - (\vec a\cdot\vec b)^2$ は常に平行四辺形の面積の2乗に一致し、2本が平行になる（または片方が零ベクトルになる）と面積とともに $0$ になります。
+</CauchyVectors>
+
+成分で書けば $(a_1^2 + a_2^2)(b_1^2 + b_2^2) - (a_1b_1 + a_2b_2)^2 = (a_1b_2 - a_2b_1)^2$。この恒等式は、成分がいくつあっても同じ形で成り立ちます。だから不等式も、2次元・3次元を超えて成り立つのです。
+
+<Layer id="tool">コーシー・シュワルツの不等式</Layer>
+
+<Theorem name="コーシー・シュワルツの不等式">
+
+実数 $a_1, \dots, a_n,\ b_1, \dots, b_n$ について
+
+$$
+\left(\sum_{i=1}^n a_i b_i\right)^2 \le \left(\sum_{i=1}^n a_i^2\right)\left(\sum_{i=1}^n b_i^2\right).
+$$
+
+等号が成り立つのは、$(a_1, \dots, a_n)$ と $(b_1, \dots, b_n)$ が**一次従属**、すなわち一方が他方の実数倍であるとき（どちらかがすべて $0$ の場合を含む）に限る。
+
+</Theorem>
+
+使い方の型は「**定数の組と変数の組を並べる**」ことです。たとえば $x + 2y + 2z = 9$ のもとで $x^2 + y^2 + z^2$ の最小値を求めるなら、$(1, 2, 2)$ と $(x, y, z)$ に使って
+
+$$
+81 = (1\cdot x + 2y + 2z)^2 \le (1^2 + 2^2 + 2^2)(x^2 + y^2 + z^2) = 9(x^2 + y^2 + z^2).
+$$
+
+よって $x^2 + y^2 + z^2 \ge 9$。等号は $(x, y, z) = k(1, 2, 2)$ のときで、条件から $k = 1$、つまり $(x, y, z) = (1, 2, 2)$ で実際に成立します。
+
+<Pitfall title="等号条件を「比が等しい」と書かない">
+
+等号条件を $\dfrac{a_1}{b_1} = \dfrac{a_2}{b_2} = \cdots$ と書くと、$b_i = 0$ の場合を表せず、零ベクトルの場合も取りこぼします。「ある実数 $k$ で $b_i = k a_i$（すべての $i$）、または $a_i$ がすべて $0$」と書くのが正確です。
+
+</Pitfall>
+
+<Pitfall title="最小値は「等号が成立する」まで確かめる">
+
+不等式 $x^2 + y^2 + z^2 \ge 9$ だけでは最小値が $9$ だとは言えません。等号が成り立つ $(x, y, z)$ が**条件をみたす範囲に実際に存在する**ことを示して、初めて最小値です。
+
+</Pitfall>
+
+<Layer id="why">2次式の判別式で証明する</Layer>
+
+<Proof>
+
+すべての $a_i$ が $0$ なら両辺とも $0$ で成立。そうでないとき、任意の実数 $t$ に対し
+
+$$
+0 \le \sum_{i=1}^n (a_i t - b_i)^2 = \left(\sum a_i^2\right)t^2 - 2\left(\sum a_i b_i\right)t + \sum b_i^2 .
+$$
+
+$\sum a_i^2 > 0$ なので、この $t$ の2次式が常に $0$ 以上であることから判別式は $0$ 以下：
+
+$$
+\frac{D}{4} = \left(\sum a_i b_i\right)^2 - \left(\sum a_i^2\right)\left(\sum b_i^2\right) \le 0 .
+$$
+
+等号 $D = 0$ のとき、2次式は重解 $t = k$ で $0$ になる。すなわち $\sum (a_i k - b_i)^2 = 0$ で、すべての $i$ について $b_i = k a_i$。
+
+</Proof>
+
+もう1つの証明は、図で見た恒等式を一般化した**ラグランジュの恒等式**です。
+
+$$
+\left(\sum a_i^2\right)\left(\sum b_i^2\right) - \left(\sum a_i b_i\right)^2 = \sum_{1 \le i < j \le n} (a_i b_j - a_j b_i)^2 \ \ge 0 .
+$$
+
+右辺が $0$ になるのは、すべての $i, j$ で $a_i b_j = a_j b_i$、つまり2つの組が一次従属のときです。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> 実数 $x, y, z$ が $x + 2y + 2z = 9$ をみたすとき、$x^2 + y^2 + z^2$ の最小値を求めよ。
+
+<Craft kind="idea">
+
+第2層の計算で、最小値 $9$ と、そのときの $(x, y, z) = (1, 2, 2)$ が同時に得られます。図形的には「原点から平面 $x + 2y + 2z = 9$ までの距離 $3$ の2乗」です。
+
+</Craft>
+
+<Craft kind="direct">
+
+コーシー・シュワルツの不等式を答案に使うなら、どの2つの組に適用したかを明示し、**等号成立条件とそれが条件をみたすこと**を必ず書きます。範囲外の定理を根拠として認めるかどうかは試験の指示や採点方針によるので、次の書き直しも用意しておきましょう。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例（ベクトルで）．** $\vec u = (1, 2, 2),\ \vec v = (x, y, z)$ とおくと、条件は $\vec u\cdot\vec v = 9$。$\vec u, \vec v$ のなす角を $\theta$ とすると
+
+$$
+9 = \vec u\cdot\vec v = |\vec u||\vec v|\cos\theta \le |\vec u||\vec v| = 3\sqrt{x^2 + y^2 + z^2}
+$$
+
+（$\vec v = \vec 0$ は条件をみたさないので角が定まる）。よって $x^2 + y^2 + z^2 \ge 9$。等号は $\cos\theta = 1$、すなわち $\vec v = k\vec u\ (k > 0)$ のときで、条件から $k = 1$。$(x, y, z) = (1, 2, 2)$ のとき最小値 $9$。
+
+</Craft>
+
+変数が4個以上なら、第3層の判別式による証明を答案にそのまま書けば、高校範囲の議論になります。
+
+<Layer id="advanced">分数の形と、積分の形</Layer>
+
+### 分数の形（Engel の形）
+
+$b_i > 0$ のとき、$\left(\dfrac{a_i}{\sqrt{b_i}}\right)$ と $(\sqrt{b_i})$ に使うと
+
+$$
+\frac{a_1^2}{b_1} + \frac{a_2^2}{b_2} + \cdots + \frac{a_n^2}{b_n} \ \ge\ \frac{(a_1 + a_2 + \cdots + a_n)^2}{b_1 + b_2 + \cdots + b_n}.
+$$
+
+分母がばらばらの分数の和を、1つの分数で下から押さえられます。
+
+### 積分の形
+
+$f, g$ が区間 $[a, b]$ で連続なら
+
+$$
+\left(\int_a^b f(x)g(x)\,dx\right)^2 \le \int_a^b f(x)^2\,dx \int_a^b g(x)^2\,dx .
+$$
+
+証明は和の場合と同じく、$\displaystyle\int_a^b \{t f(x) - g(x)\}^2\,dx \ge 0$ の判別式です。和が積分に変わっただけで、議論の骨格はまったく同じであることに注目してください。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="cs-1" n={1} title="直線上の最短距離" level="基本">
+
+実数 $x, y$ が $3x + 4y = 10$ をみたすとき、$x^2 + y^2$ の最小値と、そのときの $x, y$ を求めよ。
+
+<Step kind="hint" n={1}>
+$(3, 4)$ と $(x, y)$ に使います。
+</Step>
+
+<Step kind="answer">
+
+$100 = (3x + 4y)^2 \le (9 + 16)(x^2 + y^2)$ より $x^2 + y^2 \ge 4$。等号は $(x, y) = k(3, 4)$ のときで、条件から $25k = 10$、$k = \dfrac25$。
+
+答え：$x = \dfrac65,\ y = \dfrac85$ のとき最小値 $4$（原点から直線までの距離 $2$ の2乗）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="cs-2" n={2} title="逆数の和" level="標準">
+
+$a, b, c > 0,\ a + b + c = 1$ のとき、$\dfrac1a + \dfrac1b + \dfrac1c \ge 9$ を示せ。
+
+<Step kind="hint" n={1}>
+$(\sqrt a, \sqrt b, \sqrt c)$ と $\left(\dfrac{1}{\sqrt a}, \dfrac{1}{\sqrt b}, \dfrac{1}{\sqrt c}\right)$ に使います。
+</Step>
+
+<Step kind="answer">
+
+$(1 + 1 + 1)^2 \le (a + b + c)\left(\dfrac1a + \dfrac1b + \dfrac1c\right) = \dfrac1a + \dfrac1b + \dfrac1c$。等号は $a = b = c = \dfrac13$。
+
+※ 高校範囲では、$(a + b + c)\left(\dfrac1a + \dfrac1b + \dfrac1c\right) = 3 + \left(\dfrac ab + \dfrac ba\right) + \left(\dfrac bc + \dfrac cb\right) + \left(\dfrac ca + \dfrac ac\right)$ と展開し、各かっこに相加相乗平均を使っても示せます。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="cs-3" n={3} title="分数の和を下から押さえる" level="標準">
+
+$x, y, z > 0$ のとき、$\dfrac{x^2}{y + z} + \dfrac{y^2}{z + x} + \dfrac{z^2}{x + y} \ge \dfrac{x + y + z}{2}$ を示せ。
+
+<Step kind="hint" n={1}>
+「発展」で見た分数の形をそのまま使えます。分母の和は $2(x + y + z)$ です。
+</Step>
+
+<Step kind="answer">
+
+Engel の形より 左辺 $\ge \dfrac{(x + y + z)^2}{(y + z) + (z + x) + (x + y)} = \dfrac{x + y + z}{2}$。等号は $\dfrac{x}{y + z} = \dfrac{y}{z + x} = \dfrac{z}{x + y}$ のとき。この共通の値を $k$ とおくと $x = k(y + z)$ などを足して $x + y + z = 2k(x + y + z)$、$k = \dfrac12$。$2x = y + z,\ 2y = z + x$ から $x = y = z$ となる。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="cs-4" n={4} title="積分の不等式" level="発展">
+
+$f(x)$ は $0 \le x \le 1$ で連続で、$\displaystyle\int_0^1 f(x)\,dx = 1$ をみたす。$\displaystyle\int_0^1 f(x)^2\,dx \ge 1$ を示し、等号が成り立つ $f$ を求めよ。
+
+<Step kind="hint" n={1}>
+$\displaystyle\int_0^1 \{f(x) - 1\}^2\,dx \ge 0$ を展開してみましょう（判別式を使うまでもありません）。
+</Step>
+
+<Step kind="answer">
+
+$0 \le \displaystyle\int_0^1 \{f(x) - 1\}^2\,dx = \int_0^1 f(x)^2\,dx - 2\int_0^1 f(x)\,dx + 1 = \int_0^1 f(x)^2\,dx - 1$。
+
+等号が成り立つとき $\displaystyle\int_0^1 \{f(x) - 1\}^2\,dx = 0$。被積分関数は連続で $0$ 以上なので、恒等的に $0$ でなければならない（もしある点で正なら、その近くの区間で正となり積分が正になる）。よって $f(x) = 1$。
+
+</Step>
+
+</Exercise>

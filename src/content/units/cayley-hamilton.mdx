@@ -1,0 +1,249 @@
+---
+order: 6
+title: ケーリー・ハミルトンの定理
+hook: A² を A と I で書ける。だから Aⁿ も、xⁿ の割り算の余りで決まる。
+summary: 2次正方行列 A は、自分自身の特性方程式をみたす。この1行の事実から、行列の n 乗が「多項式の割り算の余り」と同じ計算で求まり、3項間漸化式とのつながりが見える。
+payoff: 「xⁿ を x² − 3x + 2 で割った余り」「3項間漸化式の係数の追跡」が、すべて同じ1つの構造の言い換えだと分かり、次数下げの計算に迷わなくなる。
+minutes: 30
+outsideType: 道具
+hsPrerequisites:
+  - 剰余の定理・因数定理
+  - 整式の割り算
+  - 数列の漸化式
+newTools:
+  - ケーリー・ハミルトンの定理（2次正方行列）
+  - 行列の n 乗の次数下げ
+backToHS: 行列の代わりに整式 xⁿ を特性多項式で割った余りを、剰余の定理（重解なら微分）で求める。計算の中身はまったく同じになる。
+edges:
+  prerequisite: [linear-map]
+  application: [recurrence]
+  related: []
+aliases:
+  - ケーリーハミルトン
+  - Cayley-Hamilton
+  - ハミルトン・ケーリー
+  - 行列のn乗
+  - 次数下げ
+  - 特性多項式
+pitfalls:
+  - 2次正方行列 A について A² − (tr A)A + (det A)I = O（O は零行列）。成分の計算で確かめられる
+  - 逆は成り立たない：A² − pA + qI = O から p = tr A, q = det A とは言えない（A = kI のとき）
+  - 行列の積は交換できないので、数の因数分解のように (A − I)(A − 2I) = O から A = I または A = 2I とは言えない
+  - A² = O でも A = O とは限らない
+exercises:
+  - { id: ch-1, title: 定理の確認と A³, level: 基本 }
+  - { id: ch-2, title: 余りの係数とフィボナッチ, level: 標準 }
+  - { id: ch-3, title: 逆の誤用, level: 標準 }
+  - { id: ch-4, title: 重解のときの余り, level: 発展 }
+map: { x: 74, y: 38, group: 線形, label: ケーリー・ハミルトン }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import ChStepper from '../../components/interactive/ChStepper.astro';
+
+<Layer id="intuition">2乗が1乗で書けるなら、何乗でも1乗で書ける</Layer>
+
+もし $A^2 = tA - dI$ のように「2乗を1乗以下で書く式」があれば、$A^3 = A\cdot A^2 = tA^2 - dA$ の $A^2$ をまた書き換えて……と、何乗でも $pA + qI$ の形に落とせます。係数 $p, q$ は2つの数だけなので、$4$ つの成分をもつ行列の $n$ 乗が、2つの数列の計算に化けるわけです。
+
+<ChStepper>
+  行列を選んで $n$ を動かすと、係数 $p_n, q_n$ が上の漸化式で次々に決まり、$p_nA + q_nI$ が実際の $A^n$ と一致することが確かめられます。$(1\ 1\,;\ 1\ 0)$ では $p_n$ がフィボナッチ数列になっています。
+</ChStepper>
+
+そして、その「2乗を1乗で書く式」はどんな2次正方行列にも必ずあります。それがケーリー・ハミルトンの定理です。
+
+<Layer id="tool">定理と次数下げ</Layer>
+
+<Theorem name="ケーリー・ハミルトンの定理（2次正方行列）">
+
+$A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$ に対して
+
+$$
+A^2 - (a + d)A + (ad - bc)I = O .
+$$
+
+ここで $O$ は零行列、$I$ は単位行列。すなわち $A$ は自分の特性方程式 $x^2 - (\operatorname{tr}A)x + \det A = 0$ に「代入すると $0$ になる」。
+
+</Theorem>
+
+これを使うと、$A^n$ は次のように**整式の割り算の余り**で求まります。$f(x) = x^2 - (\operatorname{tr}A)x + \det A$ として、$x^n$ を $f(x)$ で割ると
+
+$$
+x^n = f(x)Q(x) + p_n x + q_n .
+$$
+
+$A$ の累乗どうしは交換できるので、この恒等式の $x$ に $A$ を代入してよく、$f(A) = O$ から
+
+$$
+A^n = p_n A + q_n I .
+$$
+
+余り $p_n x + q_n$ は、$f(x) = 0$ の2解 $\alpha, \beta$ を $x$ に代入した $\alpha^n = p_n\alpha + q_n$、$\beta^n = p_n\beta + q_n$ から求まります（$\alpha \ne \beta$ のとき）。
+
+<Pitfall title="逆は成り立たない">
+
+$A^2 - 3A + 2I = O$ をみたす $A$ について「$\operatorname{tr}A = 3,\ \det A = 2$」とは**限りません**。$A = I$ も $A = 2I$ もこの式をみたしますが、$\operatorname{tr}I = 2$、$\operatorname{tr}(2I) = 4$ です。結論を出せるのは $A$ が単位行列の実数倍でないときだけです（演習3）。
+
+</Pitfall>
+
+<Pitfall title="数のように因数分解して結論を出さない">
+
+$(A - I)(A - 2I) = O$ でも、$A = I$ または $A = 2I$ とは言えません。行列では「積が $O$ なら一方が $O$」が成り立たないからです。たとえば $N = \begin{pmatrix} 0 & 1 \\ 0 & 0 \end{pmatrix}$ は $N \ne O$ なのに $N^2 = O$ です。
+
+</Pitfall>
+
+<Layer id="why">成分で計算するだけ</Layer>
+
+<Proof>
+
+$$
+A^2 = \begin{pmatrix} a^2 + bc & ab + bd \\ ca + dc & bc + d^2 \end{pmatrix}, \qquad
+(a + d)A = \begin{pmatrix} a^2 + ad & ab + bd \\ ac + cd & ad + d^2 \end{pmatrix}.
+$$
+
+差は $A^2 - (a + d)A = \begin{pmatrix} bc - ad & 0 \\ 0 & bc - ad \end{pmatrix} = -(ad - bc)I$。
+
+</Proof>
+
+割り算の余りを使う議論で $x$ に $A$ を代入してよい理由も確認しておきます。$x^n = f(x)Q(x) + p_nx + q_n$ は $x$ の整式としての恒等式で、両辺を展開して係数を比べれば同じ式です。行列 $A$ の累乗 $A^k$ はすべて互いに交換できる（$A^jA^k = A^{j+k} = A^kA^j$）ので、展開・整理の手順を行列に対してもそのまま行えます。もし $A$ と別の行列 $B$ が混ざると、この議論は成り立ちません。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+行列が問題文に出てこなくても、同じ構造は**整式の割り算や3項間漸化式**として現れます。
+
+> $x^n$ を $x^2 - 3x + 2$ で割った余りを求めよ。
+
+<Craft kind="idea">
+
+「$x^2 = 3x - 2$ を使って次数を下げ続ける」と見ると、余り $p_nx + q_n$ の係数は $p_{n+1} = 3p_n + q_n,\ q_{n+1} = -2p_n$ で決まります。これは $\operatorname{tr}A = 3,\ \det A = 2$ の行列の $n$ 乗の計算と同じで、図で見た漸化式そのものです。
+
+</Craft>
+
+<Craft kind="direct">
+
+行列やケーリー・ハミルトンの定理を使った答案が認められるかは試験によります。この問題はもともと整式の問題なので、行列を持ち出す必要はありません。行列の問題として出された場合も、定理を使うなら「$A^2 - (a + d)A + (ad - bc)I = O$ は成分計算で確かめられる」と一言添えるのが丁寧です。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例．** $x^n = (x - 1)(x - 2)Q(x) + px + q$ とおく。$x = 1, 2$ を代入して
+
+$$
+1 = p + q, \qquad 2^n = 2p + q .
+$$
+
+よって $p = 2^n - 1,\ q = 2 - 2^n$。余りは $(2^n - 1)x + 2 - 2^n$。
+
+</Craft>
+
+同じ $p, q$ を使えば、$\operatorname{tr}A = 3,\ \det A = 2$ をみたす任意の行列について $A^n = (2^n - 1)A + (2 - 2^n)I$ です。たとえば $A = \begin{pmatrix} 1 & 0 \\ 0 & 2 \end{pmatrix}$ に当てはめると $\begin{pmatrix} 1 & 0 \\ 0 & 2^n \end{pmatrix}$ となり、確かに正しい値です。
+
+<Layer id="advanced">重解の場合と、大きな行列</Layer>
+
+特性方程式が重解 $\alpha$ をもつとき、$x^n = (x - \alpha)^2 Q(x) + px + q$ に $x = \alpha$ を代入するだけでは式が1本しか得られません。そこで両辺を $x$ で微分してから $x = \alpha$ を代入すると、$(x - \alpha)^2Q(x)$ の微分は $x = \alpha$ で $0$ なので
+
+$$
+\alpha^n = p\alpha + q, \qquad n\alpha^{n-1} = p .
+$$
+
+余りに $n\alpha^{n-1}$ という「$n$ に比例する部分」が現れます。単元5の演習4で見たせん断行列の $A^n$ や、単元9の「特性方程式が重解のとき一般項に $n\lambda^n$ が現れる」現象と同じ根から生えています。
+
+なお、ケーリー・ハミルトンの定理は $3$ 次以上の正方行列でも成り立ちます（特性多項式 $\det(xI - A)$ に $A$ を代入すると零行列）。ただし証明は2次の場合のような単純な成分計算ではありません。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="ch-1" n={1} title="定理の確認と A³" level="基本">
+
+$A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}$ について、ケーリー・ハミルトンの定理の式を書き、それを用いて $A^3$ を求めよ。
+
+<Step kind="hint" n={1}>
+$\operatorname{tr}A = 5,\ \det A = -2$ なので $A^2 = 5A + 2I$。
+</Step>
+
+<Step kind="answer">
+
+$A^2 - 5A - 2I = O$。$A^3 = A\cdot A^2 = 5A^2 + 2A = 5(5A + 2I) + 2A = 27A + 10I = \begin{pmatrix} 37 & 54 \\ 81 & 118 \end{pmatrix}$。
+
+（検算：$A^2 = \begin{pmatrix} 7 & 10 \\ 15 & 22 \end{pmatrix}$ に $A$ を掛けても同じ結果になる）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="ch-2" n={2} title="余りの係数とフィボナッチ" level="標準">
+
+$x^n$ を $x^2 - x - 1$ で割った余りを $p_nx + q_n$ とする（$n \ge 0$）。
+
+(1) $p_{n+1}, q_{n+1}$ を $p_n, q_n$ で表せ。
+
+(2) $p_{n+2} = p_{n+1} + p_n$ を示し、$p_n$ を求めよ。
+
+<Step kind="hint" n={1}>
+$x^{n+1} = x\cdot x^n$ で、$x(p_nx + q_n) = p_nx^2 + q_nx$ の $x^2$ を $x + 1$ に置き換えます（割る式の倍数を除く）。
+</Step>
+
+<Step kind="answer">
+
+(1) $x^{n+1} \equiv p_nx^2 + q_nx \equiv p_n(x + 1) + q_nx = (p_n + q_n)x + p_n$ より $p_{n+1} = p_n + q_n,\ q_{n+1} = p_n$。
+
+(2) $p_{n+2} = p_{n+1} + q_{n+1} = p_{n+1} + p_n$。$x^0 = 1$ より $p_0 = 0$、$x^1 = x$ より $p_1 = 1$。よって $p_n$ はフィボナッチ数列 $F_n$（$0, 1, 1, 2, 3, 5, \dots$）で、
+
+$$
+p_n = \frac{1}{\sqrt5}\left\{\left(\frac{1 + \sqrt5}{2}\right)^n - \left(\frac{1 - \sqrt5}{2}\right)^n\right\}.
+$$
+
+（$\alpha, \beta$ を $x^2 - x - 1 = 0$ の2解として $p_n = \dfrac{\alpha^n - \beta^n}{\alpha - \beta}$ からも直接得られる。）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="ch-3" n={3} title="逆の誤用" level="標準">
+
+2次正方行列 $A$ が $A^2 - 3A + 2I = O$ をみたす。
+
+(1) $\operatorname{tr}A = 3,\ \det A = 2$ とは限らないことを例で示せ。
+
+(2) $A$ が単位行列の実数倍でなければ $\operatorname{tr}A = 3,\ \det A = 2$ であることを示せ。
+
+<Step kind="hint" n={1}>
+(2) ケーリー・ハミルトンの式 $A^2 - tA + dI = O$ と与式の差をとります。
+</Step>
+
+<Step kind="answer">
+
+(1) $A = I$ は $I - 3I + 2I = O$ をみたすが $\operatorname{tr}I = 2$。$A = 2I$ も同様にみたすが $\operatorname{tr}(2I) = 4$。
+
+(2) $t = \operatorname{tr}A,\ d = \det A$ とすると $A^2 - tA + dI = O$。与式との差から $(t - 3)A = (d - 2)I$。$t \ne 3$ なら $A = \dfrac{d - 2}{t - 3}I$ となり仮定に反する。よって $t = 3$ で、このとき $(d - 2)I = O$ より $d = 2$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="ch-4" n={4} title="重解のときの余り" level="発展">
+
+$x^n$ を $(x - 2)^2$ で割った余りを求め、それを用いて $A = \begin{pmatrix} 2 & 1 \\ 0 & 2 \end{pmatrix}$ の $A^n$ を求めよ。
+
+<Step kind="hint" n={1}>
+$x^n = (x - 2)^2Q(x) + px + q$ の両辺を微分してから $x = 2$ を代入します。
+</Step>
+
+<Step kind="answer">
+
+$x = 2$ で $2^n = 2p + q$。微分して $x = 2$ で $n2^{n-1} = p$。よって $p = n2^{n-1},\ q = 2^n - n2^n = (1 - n)2^n$。
+
+$A$ は $\operatorname{tr}A = 4,\ \det A = 4$ で、特性多項式は $(x - 2)^2$。よって
+
+$$
+A^n = pA + qI = \begin{pmatrix} 2p + q & p \\ 0 & 2p + q \end{pmatrix} = \begin{pmatrix} 2^n & n2^{n-1} \\ 0 & 2^n \end{pmatrix}.
+$$
+
+</Step>
+
+</Exercise>

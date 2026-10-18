@@ -1,0 +1,118 @@
+---
+import Figure from './Figure.astro';
+import { H, W, latticeReadout, latticeScene, type LatticeState } from '../../lib/scenes/lattice';
+
+const st: LatticeState = { n: 4, path: ['R', 'U', 'R', 'U', 'U', 'R', 'R', 'U'], showReflect: true };
+---
+
+<Figure
+  name="lattice"
+  title="越えてはいけない線と、鏡に映した経路"
+  state={st}
+  scene={latticeScene(st)}
+  readout={latticeReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="格子上の最短経路と、対角線を越える経路を折り返した経路"
+  legend={[
+    { label: '良い経路', color: 'var(--accent)' },
+    { label: '悪い経路', color: 'var(--vermilion)' },
+    { label: '折り返した経路', color: 'var(--green)' },
+  ]}
+>
+  <Fragment slot="controls">
+    <label>
+      <span>n = <span class="ctl-value" data-out="n">{st.n}</span></span>
+      <input type="range" min="2" max="8" step="1" value={st.n} data-in="n" />
+    </label>
+    <div class="ctl">
+      <span>経路をつくる</span>
+      <div class="ctl-row">
+        <button type="button" class="btn" data-act="R" aria-label="右へ1歩">→ 右</button>
+        <button type="button" class="btn" data-act="U" aria-label="上へ1歩">↑ 上</button>
+        <button type="button" class="btn" data-act="back">1歩戻る</button>
+        <button type="button" class="btn" data-act="clear">最初から</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <span>まとめて</span>
+      <div class="ctl-row">
+        <button type="button" class="btn" data-act="random">ランダムな経路</button>
+        <button type="button" class="btn" data-act="reflect" aria-pressed="true">反射を表示</button>
+      </div>
+    </div>
+  </Fragment>
+  <slot />
+</Figure>
+
+<style is:global>
+  .fig-canvas .forbid {
+    fill: none;
+    stroke: var(--vermilion);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 5;
+  }
+
+  .fig-canvas .walk {
+    fill: none;
+    stroke-width: 4;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .fig-canvas .walk.good {
+    stroke: var(--accent);
+  }
+
+  .fig-canvas .walk.bad {
+    stroke: var(--vermilion);
+  }
+
+  .fig-canvas .refl {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 4;
+    stroke-dasharray: 2 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
+
+<script>
+  import { $, onFigures, onInput } from '../../lib/interaction';
+  import type { Step } from '../../math/combinatorics';
+  import { latticeReadout, latticeScene, randomPath, type LatticeState } from '../../lib/scenes/lattice';
+
+  onFigures('lattice', (root) => {
+    const st = JSON.parse(root.dataset.state!) as LatticeState;
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = latticeScene(st);
+      $(root, '[data-k="readout"]').innerHTML = latticeReadout(st);
+      $(root, '[data-out="n"]').textContent = String(st.n);
+      const rs = st.path.filter((s) => s === 'R').length;
+      const us = st.path.length - rs;
+      $<HTMLButtonElement>(root, '[data-act="R"]').disabled = rs >= st.n;
+      $<HTMLButtonElement>(root, '[data-act="U"]').disabled = us >= st.n;
+    };
+    onInput($<HTMLInputElement>(root, '[data-in="n"]'), (el) => {
+      st.n = Number(el.value);
+      st.path = randomPath(st.n);
+      draw();
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const act = b.dataset.act!;
+        if (act === 'R' || act === 'U') st.path.push(act as Step);
+        if (act === 'back') st.path.pop();
+        if (act === 'clear') st.path = [];
+        if (act === 'random') st.path = randomPath(st.n);
+        if (act === 'reflect') {
+          st.showReflect = !st.showReflect;
+          b.setAttribute('aria-pressed', String(st.showReflect));
+        }
+        draw();
+      }),
+    );
+    draw();
+  });
+</script>

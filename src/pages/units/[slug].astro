@@ -1,0 +1,19 @@
+---
+import { getCollection, render } from 'astro:content';
+import UnitLayout from '../../layouts/UnitLayout.astro';
+
+export async function getStaticPaths() {
+  const units = (await getCollection('units')).sort((a, b) => a.data.order - b.data.order);
+  return units.map((unit, i) => ({
+    params: { slug: unit.id },
+    props: { unit, prev: units[i - 1], next: units[i + 1], all: units },
+  }));
+}
+
+const { unit, prev, next, all } = Astro.props;
+const { Content } = await render(unit);
+---
+
+<UnitLayout unit={unit} prev={prev} next={next} all={all}>
+  <Content />
+</UnitLayout>

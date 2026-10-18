@@ -1,0 +1,240 @@
+---
+order: 9
+title: 線形漸化式と特性方程式
+hook: 答えの「形」を先に知っていれば、漸化式は係数を2つ決めるだけの問題になる。
+summary: 3項間漸化式 aₙ₊₂ = p aₙ₊₁ + q aₙ の一般項は、特性方程式の解の種類（異なる実数解・重解・虚数解）だけで形が決まる。高校で学ぶ変形の背後にある一般論と、重解・虚数解の扱いを学ぶ。
+payoff: どんな3項間漸化式でも一般項の形を先に書き下して係数を決めるだけで答えが出せ、重解（n·2ⁿ 型）や虚数解（周期・振動）の問題でも迷わなくなる。
+minutes: 35
+outsideType: 技法
+hsPrerequisites:
+  - 等比数列・階差数列
+  - 3項間漸化式の変形（aₙ₊₂ − αaₙ₊₁ = β(aₙ₊₁ − αaₙ)）
+  - 複素数平面と極形式
+newTools:
+  - 一般項の形の一般論（重解・虚数解を含む）
+  - 解の重ね合わせ（線形性）
+  - 母関数（発展）
+backToHS: 特性方程式の解 α, β を使って aₙ₊₂ − αaₙ₊₁ = β(aₙ₊₁ − αaₙ) と変形し、等比数列 → 1次の漸化式の順に解く。重解なら両辺を αⁿ⁺¹ で割る。
+edges:
+  prerequisite: []
+  application: []
+  related: [catalan]
+aliases:
+  - 3項間漸化式
+  - 三項間漸化式
+  - 特性方程式
+  - 隣接3項間
+  - 重解
+  - フィボナッチ数列
+  - 母関数
+  - 一般項
+pitfalls:
+  - aₙ₊₂ = p aₙ₊₁ + q aₙ の特性方程式は x² − p x − q = 0（符号の取り違えに注意）
+  - 重解のときは A αⁿ + B αⁿ では初期条件に合わせられない。(A + Bn)αⁿ の形が必要
+  - 虚数解でも数列は実数。r(cos θ ± i sin θ) から rⁿ(A cos nθ + B sin nθ) の形に直せる
+  - 添字の始まり（a₀ か a₁ か）で係数 A, B が変わる
+exercises:
+  - { id: rec-1, title: 異なる2つの実数解, level: 基本 }
+  - { id: rec-2, title: 重解の場合, level: 標準 }
+  - { id: rec-3, title: 虚数解と周期, level: 標準 }
+  - { id: rec-4, title: 母関数で解く, level: 発展 }
+map: { x: 76, y: 70, group: 離散, label: 線形漸化式 }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import RecurrencePlot from '../../components/interactive/RecurrencePlot.astro';
+
+<Layer id="intuition">数列の振る舞いは、2つの根で決まる</Layer>
+
+$a_{n+2} = p\,a_{n+1} + q\,a_n$ の形の漸化式を考えます。等比数列 $a_n = x^n$ がこの漸化式をみたすのは、$x^2 = px + q$ のときです。これが**特性方程式**で、その2つの解が数列の振る舞いをほぼ決めてしまいます。
+
+<RecurrencePlot>
+  例を切り替えたり $p, q$ を動かしたりして、右の根の位置と数列の様子を見比べてください。根が単位円の外にあれば増大し、内側なら $0$ に近づき、虚数なら振動します。重解の例では、等比数列だけでは説明できない「$n$ に比例して伸びる」成分が現れます。
+</RecurrencePlot>
+
+<Layer id="tool">一般項の形</Layer>
+
+<Theorem name="3項間漸化式の一般項">
+
+$a_{n+2} = p\,a_{n+1} + q\,a_n$（$q \ne 0$）の特性方程式 $x^2 - px - q = 0$ の解を $\alpha, \beta$ とする。一般項は、初項 $a_0, a_1$ から決まる定数 $A, B$ を用いて次の形に書ける。
+
+1. $\alpha \ne \beta$（実数）のとき $a_n = A\alpha^n + B\beta^n$
+2. $\alpha = \beta$（重解）のとき $a_n = (A + Bn)\alpha^n$
+3. $\alpha, \beta = r(\cos\theta \pm i\sin\theta)$（虚数解）のとき $a_n = r^n(A\cos n\theta + B\sin n\theta)$
+
+</Theorem>
+
+使い方は「形を書く → 初項を代入して $A, B$ を決める」だけです。漸化式と初項2つで数列はただ1つに決まるので、形が漸化式をみたすことさえ分かっていれば、決めた $A, B$ で一般項が確定します。
+
+<Pitfall title="重解では αⁿ だけでは足りない">
+
+$a_{n+2} = 4a_{n+1} - 4a_n$ の特性方程式は $(x - 2)^2 = 0$。$a_n = A\cdot2^n + B\cdot2^n = (A + B)2^n$ とおいても、定数は実質1つしかなく、一般の初項2つには合わせられません。$n\cdot2^n$ という**もう1つの独立な解**が必要です。
+
+</Pitfall>
+
+<Pitfall title="特性方程式の符号">
+
+$a_{n+2} = p\,a_{n+1} + q\,a_n$ に対する特性方程式は $x^2 = px + q$、つまり $x^2 - px - q = 0$ です。移項の符号を取り違えると、すべてが崩れます。最後に $n = 2$ あたりで検算する習慣をつけましょう。
+
+</Pitfall>
+
+<Layer id="why">なぜその形でよいのか</Layer>
+
+鍵は**線形性**です。$\{a_n\}, \{b_n\}$ が同じ漸化式をみたせば、$\{Aa_n + Bb_n\}$ もみたします（漸化式の両辺が $a$ について1次だから）。したがって、漸化式をみたす数列を2つ見つけ、初項に合うように組み合わせればよいのです。
+
+<Proof title="1. 異なる実数解の場合">
+
+$\alpha^2 = p\alpha + q$ の両辺に $\alpha^n$ を掛けると $\alpha^{n+2} = p\alpha^{n+1} + q\alpha^n$。よって $\{\alpha^n\}$ も $\{\beta^n\}$ も漸化式をみたし、$A\alpha^n + B\beta^n$ もみたす。初項の条件 $A + B = a_0,\ A\alpha + B\beta = a_1$ は、$\alpha \ne \beta$ なのでただ1組の解 $A, B$ をもつ。
+
+</Proof>
+
+<Proof title="2. 重解の場合">
+
+重解なので $\alpha = \dfrac p2$、すなわち $2\alpha - p = 0$。$\{n\alpha^n\}$ を漸化式に代入すると
+
+$$
+(n+2)\alpha^{n+2} - p(n+1)\alpha^{n+1} - qn\alpha^n
+= \alpha^n\big\{n(\alpha^2 - p\alpha - q) + \alpha(2\alpha - p)\big\} = 0 .
+$$
+
+よって $\{\alpha^n\}$ と $\{n\alpha^n\}$ がともに漸化式をみたす。初項の条件 $A = a_0,\ (A + B)\alpha = a_1$ は $\alpha \ne 0$（$q \ne 0$ より）なので解ける。
+
+</Proof>
+
+<Proof title="3. 虚数解の場合">
+
+$\alpha = r(\cos\theta + i\sin\theta)$ とすると、ド・モアブルの定理より $\alpha^n = r^n(\cos n\theta + i\sin n\theta)$。$\{\alpha^n\}$ は（複素数の）漸化式の解で、$p, q$ は実数なので、その実部 $r^n\cos n\theta$ と虚部 $r^n\sin n\theta$ もそれぞれ漸化式をみたす。初項の条件は $A = a_0,\ r(A\cos\theta + B\sin\theta) = a_1$ で、$\sin\theta \ne 0$ なので解ける。
+
+</Proof>
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> $a_1 = 1,\ a_2 = 4,\ a_{n+2} = 4a_{n+1} - 4a_n$ で定まる数列の一般項を求めよ。
+
+<Craft kind="idea">
+
+特性方程式 $(x - 2)^2 = 0$ は重解 $2$。形は $a_n = (A + Bn)2^n$ で、$n = 1, 2$ を代入して $2(A + B) = 1,\ 4(A + 2B) = 4$。$A = 0,\ B = \dfrac12$ より $a_n = n\cdot2^{n-1}$。答えの形が最初から分かっているので、計算は連立1次方程式だけです。
+
+</Craft>
+
+<Craft kind="direct">
+
+「一般項はこの形になる」という一般論は、教科書の本文では扱われないことが多い内容です。形を仮定して係数を決める方法を答案にするなら、**求めた式が漸化式と初項をみたすことを確認し、数列は漸化式と初項でただ1つに定まる（数学的帰納法）ことを述べる**と、論理が閉じます。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例．** 漸化式を変形すると $a_{n+2} - 2a_{n+1} = 2(a_{n+1} - 2a_n)$。数列 $\{a_{n+1} - 2a_n\}$ は公比 $2$ の等比数列で、
+
+$$
+a_{n+1} - 2a_n = 2^{n-1}(a_2 - 2a_1) = 2^n .
+$$
+
+両辺を $2^{n+1}$ で割ると $\dfrac{a_{n+1}}{2^{n+1}} - \dfrac{a_n}{2^n} = \dfrac12$。$\left\{\dfrac{a_n}{2^n}\right\}$ は公差 $\dfrac12$ の等差数列なので $\dfrac{a_n}{2^n} = \dfrac12 + \dfrac{n-1}{2} = \dfrac n2$。よって $a_n = n\cdot2^{n-1}$。
+
+</Craft>
+
+「$2^{n+1}$ で割ると等差数列になる」ことが、一般論で言う「$n\alpha^n$ の項が現れる」ことの正体です。
+
+<Layer id="advanced">母関数で見る</Layer>
+
+数列を係数にもつ形式的な級数 $F(x) = a_0 + a_1x + a_2x^2 + \cdots$ を**母関数**といいます。フィボナッチ数列 $F_0 = 0,\ F_1 = 1,\ F_{n+2} = F_{n+1} + F_n$ なら、漸化式から
+
+$$
+(1 - x - x^2)F(x) = F_0 + (F_1 - F_0)x = x, \qquad F(x) = \frac{x}{1 - x - x^2}.
+$$
+
+分母を $(1 - \alpha x)(1 - \beta x)$（$\alpha, \beta$ は特性方程式の解）と因数分解して部分分数に分け、$\dfrac{1}{1 - \alpha x} = 1 + \alpha x + \alpha^2x^2 + \cdots$ を使うと、係数として $\dfrac{\alpha^n - \beta^n}{\alpha - \beta}$ が読み取れます。
+
+重解のときは分母に $(1 - \alpha x)^2$ が現れ、
+
+$$
+\frac{1}{(1 - \alpha x)^2} = \sum_{n=0}^{\infty}(n + 1)\alpha^n x^n
+$$
+
+なので、係数に **$n$ が掛かる**ことが自然に説明できます。母関数は、漸化式を「関数の割り算」に置き換える強力な道具で、単元10のカタラン数の公式もこの方法で導けます。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="rec-1" n={1} title="異なる2つの実数解" level="基本">
+
+$a_0 = 2,\ a_1 = 5,\ a_{n+2} = 5a_{n+1} - 6a_n$ の一般項を求めよ。
+
+<Step kind="answer">
+
+特性方程式 $x^2 - 5x + 6 = 0$ の解は $2, 3$。$a_n = A\cdot2^n + B\cdot3^n$ とおくと $A + B = 2,\ 2A + 3B = 5$ より $A = B = 1$。
+
+答え：$a_n = 2^n + 3^n$（検算：$a_2 = 25 - 12 = 13 = 4 + 9$）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="rec-2" n={2} title="重解の場合" level="標準">
+
+$a_0 = 1,\ a_1 = 6,\ a_{n+2} = 6a_{n+1} - 9a_n$ の一般項を求めよ。答案は高校範囲の変形で書くこと。
+
+<Step kind="hint" n={1}>
+特性方程式は $(x - 3)^2 = 0$。$a_{n+2} - 3a_{n+1} = 3(a_{n+1} - 3a_n)$ と変形します。
+</Step>
+
+<Step kind="answer">
+
+$a_{n+1} - 3a_n = 3^n(a_1 - 3a_0) = 3^{n+1}$。両辺を $3^{n+1}$ で割って $\dfrac{a_{n+1}}{3^{n+1}} - \dfrac{a_n}{3^n} = 1$。よって $\dfrac{a_n}{3^n} = 1 + n$。
+
+答え：$a_n = (n + 1)3^n$（一般論の形 $(A + Bn)3^n$ で $A = B = 1$。検算：$a_2 = 36 - 9 = 27 = 3\cdot9$）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="rec-3" n={3} title="虚数解と周期" level="標準">
+
+$a_0 = 1,\ a_1 = 1,\ a_{n+2} = a_{n+1} - a_n$ のとき、$a_{2026}$ を求めよ。
+
+<Step kind="hint" n={1}>
+特性方程式 $x^2 - x + 1 = 0$ の解は $\cos\dfrac\pi3 \pm i\sin\dfrac\pi3$。絶対値 $1$、偏角 $\dfrac\pi3$ なので周期 $6$ が予想できます。
+</Step>
+
+<Step kind="answer">
+
+範囲内の議論：$a_{n+3} = a_{n+2} - a_{n+1} = (a_{n+1} - a_n) - a_{n+1} = -a_n$。よって $a_{n+6} = -a_{n+3} = a_n$ で、周期 $6$。
+
+$a_0, \dots, a_5 = 1, 1, 0, -1, -1, 0$。$2026 = 6\cdot337 + 4$ より $a_{2026} = a_4 = -1$。
+
+（一般論では $a_n = \cos\dfrac{n\pi}{3} + \dfrac{1}{\sqrt3}\sin\dfrac{n\pi}{3}$。$n = 4$ で $-\dfrac12 - \dfrac12 = -1$ と一致する。）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="rec-4" n={4} title="母関数で解く" level="発展">
+
+$a_0 = 0,\ a_1 = 1,\ a_{n+2} = a_{n+1} + 2a_n$ の母関数 $F(x) = \sum a_nx^n$ を求め、それを部分分数に分解して一般項を求めよ。
+
+<Step kind="hint" n={1}>
+$F(x) - xF(x) - 2x^2F(x)$ を計算すると、$x^2$ 以上の項は漸化式で消えます。
+</Step>
+
+<Step kind="answer">
+
+$(1 - x - 2x^2)F(x) = a_0 + (a_1 - a_0)x = x$ より
+
+$$
+F(x) = \frac{x}{(1 - 2x)(1 + x)} = \frac13\left(\frac{1}{1 - 2x} - \frac{1}{1 + x}\right).
+$$
+
+$\dfrac{1}{1 - 2x} = \sum 2^nx^n,\ \dfrac{1}{1 + x} = \sum(-1)^nx^n$ より
+
+答え：$a_n = \dfrac{2^n - (-1)^n}{3}$（検算：$a_2 = 1,\ a_3 = 3$）
+
+</Step>
+
+</Exercise>

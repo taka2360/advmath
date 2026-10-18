@@ -1,0 +1,109 @@
+---
+import Figure from './Figure.astro';
+import { CONVEX_FNS } from '../../math/convex';
+import { H, W, convexGeometry, convexReadout, convexScene, type ConvexState } from '../../lib/scenes/convex';
+
+const st: ConvexState = { fn: 'exp', x1: -1.8, x2: 1.6, t: 0.5 };
+const g = convexGeometry(st);
+---
+
+<Figure
+  name="convex"
+  title="弦はいつも曲線の上にある"
+  state={st}
+  scene={convexScene(st)}
+  readout={convexReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="凸関数のグラフと、その上の2点を結ぶ弦。弦上の点は曲線上の点より上にある"
+  hint="2つの白い点をドラッグ（矢印キーでも可）"
+  legend={[
+    { label: 'y = f(x)', color: 'var(--ink)' },
+    { label: '弦', color: 'var(--accent)' },
+  ]}
+>
+  <Fragment slot="overlay">
+    {
+      [1, 2].map((i) => (
+        <g
+          class="handle"
+          data-k={`h${i}`}
+          tabindex="0"
+          role="slider"
+          aria-label={`点 x${i} の位置`}
+          transform={`translate(${g.s.sx(i === 1 ? st.x1 : st.x2)} ${g.s.sy(i === 1 ? g.f1 : g.f2)})`}
+        >
+          <circle r="22" fill="transparent" />
+          <circle r="8" class="knob" />
+        </g>
+      ))
+    }
+  </Fragment>
+  <Fragment slot="controls">
+    <div class="ctl">
+      <span>関数</span>
+      <div class="seg" data-k="fns">
+        {
+          CONVEX_FNS.map((f) => (
+            <button type="button" data-value={f.id} aria-pressed={f.id === st.fn ? 'true' : 'false'}>
+              {f.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <label>
+      <span>x₁ 側の重み t = <span class="ctl-value" data-out="t">0.50</span></span>
+      <input type="range" min="0" max="1" step="0.01" value="0.5" data-in="t" />
+    </label>
+  </Fragment>
+  <slot />
+</Figure>
+
+<script>
+  import { $, draggable, onFigures, onInput, segmented } from '../../lib/interaction';
+  import { clampX, convexGeometry, convexReadout, convexScene, view, type ConvexState } from '../../lib/scenes/convex';
+
+  onFigures('convex', (root) => {
+    const st = JSON.parse(root.dataset.state!) as ConvexState;
+    const svg = $<SVGSVGElement>(root, 'svg');
+    const draw = () => {
+      const g = convexGeometry(st);
+      $(root, '[data-k="scene"]').innerHTML = convexScene(st);
+      $(root, '[data-k="readout"]').innerHTML = convexReadout(st);
+      $(root, '[data-out="t"]').textContent = st.t.toFixed(2);
+      const h1 = $(root, '[data-k="h1"]');
+      const h2 = $(root, '[data-k="h2"]');
+      h1.setAttribute('transform', `translate(${g.s.sx(st.x1)} ${g.s.sy(g.f1)})`);
+      h2.setAttribute('transform', `translate(${g.s.sx(st.x2)} ${g.s.sy(g.f2)})`);
+      h1.setAttribute('aria-valuetext', `x1 = ${st.x1.toFixed(2)}`);
+      h2.setAttribute('aria-valuetext', `x2 = ${st.x2.toFixed(2)}`);
+    };
+    const bind = (key: 'x1' | 'x2', el: Element) =>
+      draggable(el, svg, {
+        onDrag: (p) => {
+          const g = convexGeometry(st);
+          st[key] = clampX(st.fn, g.s.ix(p.x));
+          draw();
+        },
+        onKey: (dx, _dy, big) => {
+          st[key] = clampX(st.fn, st[key] + dx * (big ? 0.5 : 0.05));
+          draw();
+        },
+      });
+    bind('x1', $(root, '[data-k="h1"]'));
+    bind('x2', $(root, '[data-k="h2"]'));
+    segmented($(root, '[data-k="fns"]'), (id) => {
+      st.fn = id;
+      const v = view(id);
+      const span = v.xMax - v.xMin;
+      st.x1 = clampX(id, v.xMin + span * 0.15);
+      st.x2 = clampX(id, v.xMin + span * 0.85);
+      draw();
+    });
+    onInput($<HTMLInputElement>(root, '[data-in="t"]'), (el) => {
+      st.t = Number(el.value);
+      draw();
+    });
+  });
+</script>

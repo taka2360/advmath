@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/url';
+import { STORAGE_KEY } from '../lib/progress';
+---
+
+<BaseLayout title="プライバシーについて" description="範囲の外側は、アクセス解析・広告・第三者への通信を行いません。端末に保存される情報の一覧。">
+  <header class="wrap page-head">
+    <p class="eyebrow">Privacy</p>
+    <h1>プライバシーについて</h1>
+    <p>このサイトは、あなたについての情報を集めません。</p>
+  </header>
+  <article class="wrap prose">
+    <h2>しないこと</h2>
+    <ul>
+      <li>アカウント登録・ログインはありません。</li>
+      <li>アクセス解析・広告・SNS の埋め込みなど、閲覧を追跡するコードは使っていません。</li>
+      <li>フォントや数式表示のための外部サービス（Google Fonts や CDN など）も使わず、必要なファイルはすべてこのサイト自身から配信しています。そのため、ページの閲覧によって第三者のサーバーへ通信が発生することはありません。</li>
+      <li>Cookie は使用していません。</li>
+    </ul>
+    <p>
+      なお、このサイトは GitHub Pages でホスティングされています。一般的なウェブサーバーと同様に、配信元の GitHub がアクセスの技術的な記録（IP アドレスなど）を扱うことがあります。詳しくは GitHub のプライバシーに関する説明をご覧ください。
+    </p>
+
+    <h2>あなたの端末に保存するもの</h2>
+    <p>次の2つだけを、ブラウザの localStorage（あなたの端末の中）に保存します。外部に送信されることはありません。</p>
+    <table>
+      <thead><tr><th>キー</th><th>内容</th><th>保存するとき</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>{STORAGE_KEY}</code></td>
+          <td>演習の自己採点（問題の番号と「解けた／もう一度」、その日時）</td>
+          <td>演習の「解けた」「もう一度」を押したとき</td>
+        </tr>
+        <tr>
+          <td><code>advmath:theme</code></td>
+          <td>ライト／ダーク表示の選択</td>
+          <td>表示切替のボタンを押したとき</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      演習の記録は<a href={url('review/')}>復習リスト</a>の「すべての記録を消去」で消せます。ブラウザのサイトデータを消去しても削除されます。プライベートブラウズなど保存できない環境でも、教材の閲覧や解答の表示はすべて利用できます。
+    </p>
+  </article>
+</BaseLayout>

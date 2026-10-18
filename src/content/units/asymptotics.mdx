@@ -1,0 +1,285 @@
+---
+order: 12
+title: 積分評価から漸近を読む
+hook: 計算できない和を、計算できる積分ではさむ。その先に n! の正体がある。
+summary: 区分求積・和と積分の比較・ウォリス積分という高校でも扱う道具を一本の流れにつなぎ、n! がどのくらいの大きさかを表すスターリングの公式にたどり着く。
+payoff: 「lim (n!)^(1/n) / n」のような階乗を含む極限や、和の評価の問題で、どの積分ではさめばよいかがすぐに分かり、答えの値をスターリングの公式で検算できるようになる。
+minutes: 45
+outsideType: 技法
+hsPrerequisites:
+  - 区分求積法
+  - 定積分と不等式（面積の比較）
+  - 部分積分
+  - はさみうちの原理
+newTools:
+  - 単調関数の和と積分の比較
+  - ウォリス積分とウォリスの公式
+  - スターリングの公式
+backToHS: 単調性から「長方形の面積 ≤ 積分 ≤ 長方形の面積」を立式して和をはさみ、はさみうちで極限を求める。スターリングの公式は答えの検算にだけ使う。
+edges:
+  prerequisite: []
+  application: []
+  related: [taylor]
+aliases:
+  - スターリングの公式
+  - スターリング
+  - Stirling
+  - ウォリス積分
+  - ウォリスの公式
+  - Wallis
+  - 区分求積
+  - 階乗
+  - 漸近
+pitfalls:
+  - 和を積分ではさむ向きは、関数が増加か減少かで決まる
+  - 区分求積 (1/n)Σf(k/n) → ∫₀¹f(x)dx は f が連続（積分可能）なときに使う。端で発散する関数（log x など）は直接使わず、評価に切り替える
+  - 「n! 〜 √(2πn)(n/e)ⁿ」は比が 1 に近づくという意味で、差が 0 に近づくわけではない
+  - ウォリス積分の漸化式は Wₙ = (n−1)/n · Wₙ₋₂、初期値は W₀ = π/2, W₁ = 1
+exercises:
+  - { id: asym-1, title: 区分求積の基本, level: 基本 }
+  - { id: asym-2, title: 階乗を含む極限, level: 標準 }
+  - { id: asym-3, title: ウォリス積分の計算, level: 標準 }
+  - { id: asym-4, title: 中央の二項係数の大きさ, level: 発展 }
+map: { x: 18, y: 64, group: 解析, label: 積分評価と漸近 }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import AsymptoticPlot from '../../components/interactive/AsymptoticPlot.astro';
+
+<Layer id="intuition">和は長方形、積分は曲線の下の面積</Layer>
+
+$\log n! = \log 1 + \log 2 + \cdots + \log n$ は、幅 $1$・高さ $\log k$ の長方形を並べた面積です。この和は簡単な式では書けませんが、$y = \log x$ のグラフの下の面積（積分）なら計算できます。$\log x$ は増加関数なので、長方形は曲線の**上にはみ出すように**も、**下に収まるように**も並べられます。
+
+<AsymptoticPlot>
+  朱の長方形は区間 $[k-1, k]$ に高さ $\log k$ で置いたもので、曲線の上にはみ出します。青の点線の長方形は区間 $[k, k+1]$ に同じ高さで置いたもので、曲線の下に収まります。どちらも面積の合計は $\log n!$ です。
+</AsymptoticPlot>
+
+この2通りの並べ方から、$\log n!$ は2つの積分ではさまれます。和を積分ではさむ——この単純な発想が、この単元の出発点です。
+
+<Layer id="tool">3つの道具を一本の流れに</Layer>
+
+### 1. 和を積分ではさむ
+
+<Theorem name="単調関数の和と積分の比較">
+
+$f$ が区間 $[k-1, k+1]$ で増加関数なら
+
+$$
+\int_{k-1}^{k} f(x)\,dx \le f(k) \le \int_{k}^{k+1} f(x)\,dx .
+$$
+
+$k$ について足し合わせれば、和を積分ではさめる。減少関数なら不等号は逆向き。
+
+</Theorem>
+
+$f(x) = \log x$ に使うと、$\displaystyle\int_1^n\log x\,dx = n\log n - n + 1$ より
+
+$$
+n\log n - n + 1 \ \le\ \log n!\ \le\ (n+1)\log(n+1) - n .
+$$
+
+つまり $\log n!$ は「ほぼ $n\log n - n$」、$n!$ は「ほぼ $(n/e)^n$」の大きさです。
+
+### 2. ウォリス積分
+
+$W_n = \displaystyle\int_0^{\pi/2}\sin^n x\,dx$ とおくと、部分積分により
+
+$$
+W_n = \frac{n-1}{n}W_{n-2}, \qquad W_0 = \frac\pi2,\quad W_1 = 1 .
+$$
+
+<AsymptoticPlot mode="wallis">
+  $n$ を大きくすると $\sin^n x$ は $x = \frac\pi2$ の近くに集まり、面積 $W_n$ は小さくなっていきます。それでも隣り合う $W_n$ と $W_{n+1}$ の比は $1$ に近づき、$nW_nW_{n-1}$ はつねに $\frac\pi2$ です。
+</AsymptoticPlot>
+
+$0 \le \sin x \le 1$ より $W_{2n+1} \le W_{2n} \le W_{2n-1}$。両端の比 $\dfrac{W_{2n-1}}{W_{2n+1}} = \dfrac{2n+1}{2n} \to 1$ なので $\dfrac{W_{2n}}{W_{2n+1}} \to 1$。ここから**ウォリスの公式**
+
+$$
+\frac\pi2 = \lim_{n\to\infty}\prod_{k=1}^{n}\frac{(2k)^2}{(2k-1)(2k+1)} = \lim_{n\to\infty}\frac{2^{4n}(n!)^4}{\{(2n)!\}^2(2n+1)}
+$$
+
+が得られます。
+
+### 3. スターリングの公式
+
+<Theorem name="スターリングの公式">
+
+$$
+\lim_{n\to\infty}\frac{n!}{\sqrt{2\pi n}\left(\dfrac{n}{e}\right)^n} = 1 .
+$$
+
+これを $n! \sim \sqrt{2\pi n}\left(\dfrac ne\right)^n$ と書く。
+
+</Theorem>
+
+1 で見た $(n/e)^n$ に $\sqrt{2\pi n}$ という補正が付きます。$\pi$ が現れるのは、2 のウォリス積分がこの補正の定数を決めるからです（発展）。
+
+<AsymptoticPlot mode="stirling">
+  比 $n!\big/\sqrt{2\pi n}(n/e)^n$ は $n = 1$ ですでに $1.08$ 程度、$n = 10$ で $1.008$ 程度と、驚くほど速く $1$ に近づきます。比はほぼ $1 + \frac{1}{12n}$ に沿っています。
+</AsymptoticPlot>
+
+<Pitfall title="「〜」は比の話">
+
+$n! \sim \sqrt{2\pi n}(n/e)^n$ は比が $1$ に近づくという意味です。差 $n! - \sqrt{2\pi n}(n/e)^n$ はおよそ $\dfrac{n!}{12n}$ で、$0$ に近づくどころか際限なく大きくなります。
+
+</Pitfall>
+
+<Pitfall title="区分求積を端で発散する関数に使わない">
+
+$\dfrac1n\displaystyle\sum_{k=1}^n\log\frac kn$ に区分求積を当てはめると $\displaystyle\int_0^1\log x\,dx$ になりますが、$\log x$ は $x \to +0$ で発散するため、高校で学ぶ区分求積の前提（閉区間で連続）から外れます。こういうときは 1 の「積分ではさむ」評価に切り替えるのが確実です。
+
+</Pitfall>
+
+<Layer id="why">ウォリス積分の漸化式</Layer>
+
+<Proof title="Wₙ = (n−1)/n · Wₙ₋₂ の証明（n ≥ 2）">
+
+$\sin^n x = \sin^{n-1}x\cdot\sin x$ として部分積分すると
+
+$$
+W_n = \Big[-\sin^{n-1}x\cos x\Big]_0^{\pi/2} + (n-1)\int_0^{\pi/2}\sin^{n-2}x\cos^2x\,dx = (n-1)(W_{n-2} - W_n).
+$$
+
+（$\cos^2x = 1 - \sin^2x$ を用いた。）整理して $nW_n = (n-1)W_{n-2}$。
+
+</Proof>
+
+これを繰り返すと
+
+$$
+W_{2n} = \frac{(2n-1)(2n-3)\cdots1}{2n(2n-2)\cdots2}\cdot\frac\pi2, \qquad W_{2n+1} = \frac{2n(2n-2)\cdots2}{(2n+1)(2n-1)\cdots3}.
+$$
+
+また $nW_nW_{n-1} = (n-1)W_{n-2}W_{n-1}$ なので $nW_nW_{n-1}$ は $n$ によらず一定で、$1\cdot W_1W_0 = \dfrac\pi2$ に等しくなります。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> $\displaystyle\lim_{n\to\infty}\frac{\sqrt[n]{n!}}{n}$ を求めよ。
+
+<Craft kind="idea">
+
+スターリングの公式より $\sqrt[n]{n!} \approx (2\pi n)^{1/(2n)}\cdot\dfrac ne$。$(2\pi n)^{1/(2n)} \to 1$ なので、答えは $\dfrac1e$ と見当がつきます。
+
+</Craft>
+
+<Craft kind="direct">
+
+スターリングの公式は証明が長く、高校範囲の道具だけでは完結しません。答案の根拠として使うことが認められるかは試験によりますが、この問題は**もっと弱い評価で十分**なので、公式に頼る必要はありません。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例．** $\log x$ は増加関数なので、$k = 2, \dots, n$ について $\displaystyle\int_{k-1}^k\log x\,dx \le \log k \le \int_k^{k+1}\log x\,dx$。足し合わせて
+
+$$
+n\log n - n + 1 \le \log n! \le (n+1)\log(n+1) - n .
+$$
+
+$a_n = \dfrac1n\log n! - \log n$ とおくと
+
+$$
+-1 + \frac1n \ \le\ a_n\ \le\ \log\left(1 + \frac1n\right) + \frac{\log(n+1)}{n} - 1 .
+$$
+
+$n \to \infty$ で両端は $-1$ に近づく（$\frac{\log(n+1)}{n} \to 0$ を用いる）。はさみうちの原理より $a_n \to -1$ で、$\dfrac{\sqrt[n]{n!}}{n} = e^{a_n} \to \dfrac1e$。
+
+</Craft>
+
+<Layer id="advanced">スターリングの公式の証明の骨組み</Layer>
+
+$a_n = \log n! - \left(n + \frac12\right)\log n + n$ とおきます。示したいのは $a_n \to \log\sqrt{2\pi}$ です。
+
+**ステップ1（収束）**　$a_n - a_{n+1} = \left(n + \frac12\right)\log\left(1 + \frac1n\right) - 1$。$t = \frac{1}{2n+1}$ とおくと $1 + \frac1n = \frac{1+t}{1-t}$ で、単元1の $\log(1 \pm t)$ の展開から
+
+$$
+a_n - a_{n+1} = \frac{t^2}{3} + \frac{t^4}{5} + \frac{t^6}{7} + \cdots,\qquad 0 < a_n - a_{n+1} < \frac{t^2}{3(1 - t^2)} = \frac{1}{12}\left(\frac1n - \frac{1}{n+1}\right).
+$$
+
+よって $\{a_n\}$ は減少し、$\{a_n - \frac{1}{12n}\}$ は増加する。$a_n$ は下に有界な減少数列なので、ある値 $C$ に収束する（この「有界な単調数列は収束する」という事実は、実数の性質として大学で厳密に扱われる）。
+
+**ステップ2（定数の決定）**　$n! \approx e^C\sqrt n(n/e)^n$ をウォリスの公式に代入すると、$(n/e)$ の累乗と $2^{4n}$ がすべて打ち消し合い
+
+$$
+\frac{2^{4n}(n!)^4}{\{(2n)!\}^2(2n+1)} \to \frac{e^{2C}}{4} .
+$$
+
+これが $\frac\pi2$ に等しいので $e^{2C} = 2\pi$、すなわち $e^C = \sqrt{2\pi}$。三角関数の積分から出てきた $\pi$ が、階乗の大きさに入り込む仕組みです。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="asym-1" n={1} title="区分求積の基本" level="基本">
+
+$\displaystyle\lim_{n\to\infty}\left(\frac{1}{n+1} + \frac{1}{n+2} + \cdots + \frac{1}{2n}\right)$ を求めよ。
+
+<Step kind="hint" n={1}>
+$\dfrac{1}{n+k} = \dfrac1n\cdot\dfrac{1}{1 + k/n}$ と変形します。
+</Step>
+
+<Step kind="answer">
+
+$\displaystyle\sum_{k=1}^n\frac{1}{n+k} = \frac1n\sum_{k=1}^n\frac{1}{1 + \frac kn} \to \int_0^1\frac{dx}{1+x} = \log2$。
+
+答え：$\log 2$
+
+</Step>
+
+</Exercise>
+
+<Exercise id="asym-2" n={2} title="階乗を含む極限" level="標準">
+
+$\displaystyle\lim_{n\to\infty}\left\{\frac{(2n)!}{n!\,n^n}\right\}^{1/n}$ を求めよ。
+
+<Step kind="hint" n={1}>
+$\dfrac{(2n)!}{n!} = (n+1)(n+2)\cdots(2n)$ なので、$\dfrac{(2n)!}{n!\,n^n} = \displaystyle\prod_{k=1}^n\left(1 + \frac kn\right)$。対数をとると区分求積の形です。
+</Step>
+
+<Step kind="answer">
+
+対数をとると $\dfrac1n\displaystyle\sum_{k=1}^n\log\left(1 + \frac kn\right) \to \int_0^1\log(1+x)\,dx = \Big[(1+x)\log(1+x) - x\Big]_0^1 = 2\log2 - 1$。
+
+答え：$e^{2\log 2 - 1} = \dfrac4e$
+
+（検算：スターリングの公式で $\dfrac{(2n)!}{n!} \approx \sqrt2\left(\dfrac{4n}{e}\right)^n$ となり、$n$ 乗根をとって $n$ で割ると $\dfrac4e$。）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="asym-3" n={3} title="ウォリス積分の計算" level="標準">
+
+$W_5,\ W_6$ を求め、$6W_6W_5 = \dfrac\pi2$ を確かめよ。
+
+<Step kind="answer">
+
+$W_5 = \dfrac45\cdot\dfrac23\cdot W_1 = \dfrac{8}{15}$、$W_6 = \dfrac56\cdot\dfrac34\cdot\dfrac12\cdot W_0 = \dfrac{5}{16}\cdot\dfrac\pi2 = \dfrac{5\pi}{32}$。
+
+$6\cdot\dfrac{5\pi}{32}\cdot\dfrac{8}{15} = \dfrac{240\pi}{480} = \dfrac\pi2$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="asym-4" n={4} title="中央の二項係数の大きさ" level="発展">
+
+スターリングの公式を用いて ${}_{2n}\mathrm{C}_n \sim \dfrac{4^n}{\sqrt{\pi n}}$ を導け。また $n = 10$ のとき、この近似の比を計算せよ（${}_{20}\mathrm{C}_{10} = 184756$）。
+
+<Step kind="answer">
+
+$$
+{}_{2n}\mathrm{C}_n = \frac{(2n)!}{(n!)^2} \sim \frac{\sqrt{4\pi n}\,(2n/e)^{2n}}{2\pi n\,(n/e)^{2n}} = \frac{2\sqrt{\pi n}\cdot4^n}{2\pi n} = \frac{4^n}{\sqrt{\pi n}}.
+$$
+
+$n = 10$：$\dfrac{4^{10}}{\sqrt{10\pi}} = \dfrac{1048576}{5.6050\cdots} \fallingdotseq 187079$。比は $\dfrac{184756}{187079} \fallingdotseq 0.988$。
+
+（単元10のカタラン数 $C_n = \dfrac{1}{n+1}{}_{2n}\mathrm{C}_n$ も、これから $C_n \sim \dfrac{4^n}{n^{3/2}\sqrt\pi}$ と分かる。）
+
+</Step>
+
+</Exercise>

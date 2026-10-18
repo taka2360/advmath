@@ -1,0 +1,228 @@
+---
+order: 7
+title: 外積と平面の方程式
+hook: 2本のベクトルに垂直なベクトルを、連立方程式を解かずに一発で作る。
+summary: 空間の2つのベクトルから、両方に垂直で、大きさが平行四辺形の面積に等しいベクトルを作る演算。平面の法線ベクトル・三角形の面積・四面体の体積が、ひとつながりの計算になる。
+payoff: 空間の3点を通る平面の方程式、三角形の面積、四面体の体積を求める問題で、法線ベクトルと面積を一度の計算で手に入れ、答えを素早く検算できるようになる。
+minutes: 30
+outsideType: 道具
+hsPrerequisites:
+  - 空間ベクトルの成分と内積
+  - 平面の方程式（法線ベクトル）
+  - 三角形の面積の公式 ½√(|a|²|b|² − (a·b)²)
+newTools:
+  - 外積（ベクトル積）
+  - スカラー三重積と体積
+backToHS: 法線ベクトルは「両方の方向ベクトルとの内積が 0」という連立方程式を解いて求め、面積は ½√(|a|²|b|² − (a·b)²) で計算する。外積で得た答えはその検算に使う。
+edges:
+  prerequisite: []
+  application: []
+  related: []
+aliases:
+  - 外積
+  - ベクトル積
+  - クロス積
+  - 法線ベクトル
+  - 平面の方程式
+  - スカラー三重積
+  - 四面体の体積
+pitfalls:
+  - 外積は空間ベクトル（3次元）の演算。平面では数（符号付き面積）として扱う
+  - a×b = −b×a（交換すると向きが逆）
+  - 大きさは平行四辺形の面積で、三角形の面積はその半分
+  - a, b が一次従属（平行・零ベクトル）だと a×b = 0 で、平面は定まらない
+exercises:
+  - { id: cross-1, title: 外積の計算, level: 基本 }
+  - { id: cross-2, title: 3点を通る平面, level: 標準 }
+  - { id: cross-3, title: 点と平面の距離, level: 標準 }
+  - { id: cross-4, title: 四面体の体積, level: 発展 }
+map: { x: 50, y: 74, group: 線形, label: 外積と平面 }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import CrossProduct3D from '../../components/interactive/CrossProduct3D.astro';
+
+<Layer id="intuition">垂直な方向と、面積を同時に</Layer>
+
+空間の2つのベクトル $\vec a, \vec b$ が張る平面に垂直な向き（法線）は、高校では「$\vec n\cdot\vec a = 0,\ \vec n\cdot\vec b = 0$」という連立方程式を解いて求めます。外積はこれを**公式一発で**与えるうえ、その長さがちょうど $\vec a, \vec b$ の作る平行四辺形の面積になっています。
+
+<CrossProduct3D>
+  成分のスライダーで $\vec a, \vec b$ を変え、図をドラッグして視点を回してみてください。緑の $\vec a\times\vec b$ は常に平行四辺形に垂直です。$\vec a$ と $\vec b$ を平行にすると（たとえば $\vec b$ を $\vec a$ の実数倍に）、平行四辺形がつぶれて外積は $\vec 0$ になります。
+</CrossProduct3D>
+
+<Layer id="tool">外積の定義と性質</Layer>
+
+<Theorem kind="定義" name="外積（ベクトル積）">
+
+$\vec a = (a_1, a_2, a_3),\ \vec b = (b_1, b_2, b_3)$ に対して
+
+$$
+\vec a \times \vec b = (a_2b_3 - a_3b_2,\ \ a_3b_1 - a_1b_3,\ \ a_1b_2 - a_2b_1).
+$$
+
+</Theorem>
+
+覚え方は「$x$ 成分は $y, z$ 成分のたすきがけ、以下 $x \to y \to z \to x$ と順に回す」です。
+
+<Theorem name="外積の性質">
+
+1. $\vec a\times\vec b$ は $\vec a$ とも $\vec b$ とも垂直。
+2. $|\vec a\times\vec b| = |\vec a||\vec b|\sin\theta$（$\theta$ は $\vec a, \vec b$ のなす角）$=$ $\vec a, \vec b$ が張る平行四辺形の面積。
+3. $\vec b\times\vec a = -\vec a\times\vec b$。特に $\vec a\times\vec a = \vec 0$。
+4. $\vec a\times\vec b = \vec 0 \iff \vec a, \vec b$ が一次従属（平行、またはどちらかが $\vec 0$）。
+
+</Theorem>
+
+**平面の方程式**：3点 $P, Q, R$ が一直線上にないとき、$\vec n = \overrightarrow{PQ}\times\overrightarrow{PR}$ は平面 $PQR$ の法線ベクトルで、平面は $\vec n\cdot(\vec x - \vec p) = 0$。三角形 $PQR$ の面積は $\dfrac12|\vec n|$。
+
+<Pitfall title="交換すると向きが逆になる">
+
+$\vec a\times\vec b$ と $\vec b\times\vec a$ は逆向きです。法線ベクトルとして使うだけなら向きはどちらでもかまいませんが、向きに意味のある計算（体積の符号など）では順序を守ります。
+
+</Pitfall>
+
+<Pitfall title="一直線上の3点では平面が決まらない">
+
+$\overrightarrow{PQ}$ と $\overrightarrow{PR}$ が平行だと外積は $\vec 0$ になり、法線ベクトルになりません。外積の計算結果が $\vec 0$ になったら、それは計算ミスか、3点が一直線上にあるかのどちらかです。
+
+</Pitfall>
+
+<Layer id="why">垂直であること、面積であること</Layer>
+
+<Proof title="両方に垂直であること">
+
+$$
+\vec a\cdot(\vec a\times\vec b) = a_1(a_2b_3 - a_3b_2) + a_2(a_3b_1 - a_1b_3) + a_3(a_1b_2 - a_2b_1) = 0
+$$
+
+（6つの項が2つずつ打ち消し合う）。$\vec b$ についても同様。
+
+</Proof>
+
+<Proof title="大きさが平行四辺形の面積であること">
+
+展開して整理すると、単元4で見たラグランジュの恒等式の3次元版
+
+$$
+|\vec a\times\vec b|^2 = |\vec a|^2|\vec b|^2 - (\vec a\cdot\vec b)^2
+$$
+
+が成り立つ。右辺は $|\vec a|^2|\vec b|^2(1 - \cos^2\theta) = (|\vec a||\vec b|\sin\theta)^2$ で、$0 \le \theta \le \pi$ では $\sin\theta \ge 0$。よって $|\vec a\times\vec b| = |\vec a||\vec b|\sin\theta$。
+
+</Proof>
+
+右辺は、高校で学ぶ三角形の面積の公式 $S = \dfrac12\sqrt{|\vec a|^2|\vec b|^2 - (\vec a\cdot\vec b)^2}$ の中身そのものです。外積は、この公式をベクトルとして「向き付き」にしたものと言えます。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> 3点 $A(1, 0, 0),\ B(0, 2, 0),\ C(0, 0, 3)$ を通る平面の方程式と、三角形 $ABC$ の面積を求めよ。
+
+<Craft kind="idea">
+
+$\overrightarrow{AB} = (-1, 2, 0),\ \overrightarrow{AC} = (-1, 0, 3)$ より $\overrightarrow{AB}\times\overrightarrow{AC} = (6, 3, 2)$。平面は $6(x - 1) + 3y + 2z = 0$、つまり $6x + 3y + 2z = 6$。面積は $\dfrac12\sqrt{36 + 9 + 4} = \dfrac72$。法線と面積が1回の計算で出ます。
+
+</Craft>
+
+<Craft kind="direct">
+
+外積は高校の教科書では扱わない演算なので、答案に使うことが認められるかは試験によります。使うなら定義の式を明記し、得た法線ベクトルが $\overrightarrow{AB}, \overrightarrow{AC}$ と垂直であること（内積が $0$）を確かめておくと、採点者にも計算の正しさが伝わります。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**解答例．** 法線ベクトルを $\vec n = (p, q, r)$ とすると $\vec n\cdot\overrightarrow{AB} = -p + 2q = 0,\ \vec n\cdot\overrightarrow{AC} = -p + 3r = 0$。$p = 6$ として $\vec n = (6, 3, 2)$。平面は $A$ を通るので $6x + 3y + 2z = 6$。
+
+面積は $|\overrightarrow{AB}|^2 = 5,\ |\overrightarrow{AC}|^2 = 10,\ \overrightarrow{AB}\cdot\overrightarrow{AC} = 1$ より
+
+$$
+S = \frac12\sqrt{5\cdot10 - 1^2} = \frac72 .
+$$
+
+</Craft>
+
+範囲内の解答は少し手間がかかりますが、外積で先に答えを出しておけば、連立方程式の解や面積の値をすぐに検算できます。
+
+<Layer id="advanced">スカラー三重積と体積</Layer>
+
+$\vec a, \vec b, \vec c$ が作る平行六面体の体積は、底面の平行四辺形の面積 $|\vec a\times\vec b|$ と、高さ（$\vec c$ の法線方向の成分の大きさ）の積なので
+
+$$
+V = |(\vec a\times\vec b)\cdot\vec c| .
+$$
+
+四面体の体積はその $\dfrac16$ です。$(\vec a\times\vec b)\cdot\vec c$ を**スカラー三重積**といい、成分で書くと3次の行列式に一致します。値が $0$ になるのは $\vec a, \vec b, \vec c$ が同一平面上にあるとき、つまり体積がつぶれるときです。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="cross-1" n={1} title="外積の計算" level="基本">
+
+$\vec a = (1, 2, 3),\ \vec b = (4, 5, 6)$ のとき $\vec a\times\vec b$ を求め、$\vec a, \vec b$ の両方と垂直であることを確かめよ。
+
+<Step kind="answer">
+
+$\vec a\times\vec b = (2\cdot6 - 3\cdot5,\ 3\cdot4 - 1\cdot6,\ 1\cdot5 - 2\cdot4) = (-3, 6, -3)$。
+
+$\vec a\cdot(-3, 6, -3) = -3 + 12 - 9 = 0$、$\vec b\cdot(-3, 6, -3) = -12 + 30 - 18 = 0$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="cross-2" n={2} title="3点を通る平面" level="標準">
+
+3点 $P(1, 1, 0),\ Q(0, 1, 1),\ R(1, 0, 1)$ を通る平面の方程式と、三角形 $PQR$ の面積を求めよ。
+
+<Step kind="hint" n={1}>
+$\overrightarrow{PQ} = (-1, 0, 1),\ \overrightarrow{PR} = (0, -1, 1)$。
+</Step>
+
+<Step kind="answer">
+
+$\overrightarrow{PQ}\times\overrightarrow{PR} = (0\cdot1 - 1\cdot(-1),\ 1\cdot0 - (-1)\cdot1,\ (-1)(-1) - 0\cdot0) = (1, 1, 1)$。
+
+平面は $(x - 1) + (y - 1) + z = 0$、すなわち $x + y + z = 2$。面積は $\dfrac12|(1, 1, 1)| = \dfrac{\sqrt3}{2}$。
+
+（三角形 $PQR$ は1辺 $\sqrt2$ の正三角形なので、面積 $\dfrac{\sqrt3}{4}(\sqrt2)^2 = \dfrac{\sqrt3}{2}$ と一致する。）
+
+</Step>
+
+</Exercise>
+
+<Exercise id="cross-3" n={3} title="点と平面の距離" level="標準">
+
+原点を通り $\vec a = (1, 0, 1),\ \vec b = (0, 1, 1)$ を含む平面 $\alpha$ と、点 $T(1, 2, 4)$ の距離を求めよ。
+
+<Step kind="hint" n={1}>
+法線ベクトル $\vec n = \vec a\times\vec b$ を求め、$\overrightarrow{OT}$ の $\vec n$ 方向の成分の大きさ $\dfrac{|\vec n\cdot\overrightarrow{OT}|}{|\vec n|}$ を計算します。
+</Step>
+
+<Step kind="answer">
+
+$\vec n = (0\cdot1 - 1\cdot1,\ 1\cdot0 - 1\cdot1,\ 1\cdot1 - 0\cdot0) = (-1, -1, 1)$。平面は $-x - y + z = 0$。
+
+距離は $\dfrac{|-1 - 2 + 4|}{\sqrt3} = \dfrac{1}{\sqrt3} = \dfrac{\sqrt3}{3}$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="cross-4" n={4} title="四面体の体積" level="発展">
+
+$O(0, 0, 0),\ A(1, 1, 0),\ B(0, 1, 1),\ C(1, 0, 1)$ を頂点とする四面体の体積を、スカラー三重積で求めよ。また、高校範囲の方法（底面積 × 高さ）で検算せよ。
+
+<Step kind="answer">
+
+$\vec a\times\vec b = (1\cdot1 - 0\cdot1,\ 0\cdot0 - 1\cdot1,\ 1\cdot1 - 1\cdot0) = (1, -1, 1)$、$(\vec a\times\vec b)\cdot\vec c = 1 + 0 + 1 = 2$。体積は $\dfrac16\cdot2 = \dfrac13$。
+
+検算：三角形 $OAB$ の面積は $\dfrac12|(1, -1, 1)| = \dfrac{\sqrt3}{2}$。平面 $OAB$ は $x - y + z = 0$ で、$C$ との距離は $\dfrac{|1 - 0 + 1|}{\sqrt3} = \dfrac{2}{\sqrt3}$。体積は $\dfrac13\cdot\dfrac{\sqrt3}{2}\cdot\dfrac{2}{\sqrt3} = \dfrac13$。
+
+</Step>
+
+</Exercise>

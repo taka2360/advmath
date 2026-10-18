@@ -1,0 +1,545 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import { LAYER_NAV } from '../lib/layers';
+import { unitUrl, url } from '../lib/url';
+
+type Unit = CollectionEntry<'units'>;
+interface Props {
+  unit: Unit;
+  prev?: Unit;
+  next?: Unit;
+  all: Unit[];
+}
+
+const { unit, prev, next, all } = Astro.props;
+const d = unit.data;
+const num = String(d.order).padStart(2, '0');
+const byId = new Map(all.map((u) => [u.id, u]));
+
+// この単元から出る辺と、この単元に入ってくる辺をまとめる
+type Rel = { unit: Unit; label: string };
+const rels: Rel[] = [];
+const seen = new Set<string>();
+const push = (id: string, label: string) => {
+  const u = byId.get(id);
+  if (!u || seen.has(id)) return;
+  seen.add(id);
+  rels.push({ unit: u, label });
+};
+d.edges.prerequisite.forEach((id) => push(id, '前提'));
+all.forEach((u) => u.data.edges.prerequisite.includes(unit.id) && push(u.id, 'この単元を前提にする'));
+d.edges.application.forEach((id) => push(id, '応用先'));
+all.forEach((u) => u.data.edges.application.includes(unit.id) && push(u.id, 'この単元へ応用'));
+d.edges.related.forEach((id) => push(id, '関連'));
+all.forEach((u) => u.data.edges.related.includes(unit.id) && push(u.id, '関連'));
+---
+
+<BaseLayout title={d.title} description={d.summary}>
+  <article class="unit" data-unit={unit.id}>
+    <header class="hero wrap">
+      <div class="num" aria-hidden="true">{num}</div>
+      <div class="hero-text">
+        <p class="eyebrow">Unit {num} · {d.map.group}</p>
+        <h1 data-pagefind-meta="title">{d.title}</h1>
+        <p class="summary">{d.summary}</p>
+        <div class="chips">
+          <span class="chip">約 {d.minutes} 分</span>
+          <span class="chip" data-type={d.outsideType}>範囲外の種類：{d.outsideType}</span>
+          <span class="chip">演習 {d.exercises.length} 問</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="wrap position" aria-label="この単元の位置づけ">
+      <div class="payoff">
+        <p class="eyebrow">入試で見えるようになること</p>
+        <p>{d.payoff}</p>
+      </div>
+      <dl class="meta">
+        <div>
+          <dt>高校範囲で必要な前提</dt>
+          <dd>
+            <ul>{d.hsPrerequisites.map((p) => <li>{p}</li>)}</ul>
+          </dd>
+        </div>
+        <div>
+          <dt>新しく学ぶ道具</dt>
+          <dd>
+            <ul>{d.newTools.map((p) => <li>{p}</li>)}</ul>
+          </dd>
+        </div>
+        <div>
+          <dt>高校数学への戻し方</dt>
+          <dd>{d.backToHS}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <nav class="layer-bar" aria-label="層の移動">
+      <div class="wrap layer-bar-inner">
+        {
+          LAYER_NAV.map((l) => (
+            <a href={`#${l.id}`} data-toc={l.id}>
+              {l.short}
+            </a>
+          ))
+        }
+      </div>
+    </nav>
+
+    <div class="wrap body">
+      <aside class="toc" aria-label="この単元の目次">
+        <nav>
+          <p class="toc-title">この単元の層</p>
+          <ol>
+            {
+              LAYER_NAV.map((l) => (
+                <li>
+                  <a href={`#${l.id}`} data-toc={l.id}>
+                    {l.short}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+          <p class="toc-title">演習</p>
+          <ol class="toc-ex">
+            {
+              d.exercises.map((e, i) => (
+                <li>
+                  <a href={`#${e.id}`} data-toc-ex={e.id}>
+                    <span class="dot" aria-hidden="true" />
+                    {i + 1}. {e.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </nav>
+      </aside>
+
+      <div class="prose" data-unit-body>
+        <slot />
+        <p class="visually-hidden">関連語：{d.aliases.join('、')}</p>
+      </div>
+    </div>
+
+    <footer class="wrap unit-foot" data-pagefind-ignore>
+      {
+        rels.length > 0 && (
+          <section class="rels" aria-label="つながる単元">
+            <h2>つながる単元</h2>
+            <ul>
+              {rels.map((r) => (
+                <li>
+                  <a href={unitUrl(r.unit.id)}>
+                    <span class="rel-label">{r.label}</span>
+                    <span class="rel-num">{String(r.unit.data.order).padStart(2, '0')}</span>
+                    <span class="rel-title">{r.unit.data.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p>
+              <a href={url('map/')}>概念マップで全体を見る →</a>
+            </p>
+          </section>
+        )
+      }
+      <nav class="pager" aria-label="前後の単元">
+        {
+          prev ? (
+            <a class="prev" href={unitUrl(prev.id)}>
+              <span>← 前の単元</span>
+              <strong>{prev.data.title}</strong>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          next && (
+            <a class="next" href={unitUrl(next.id)}>
+              <span>次の単元 →</span>
+              <strong>{next.data.title}</strong>
+            </a>
+          )
+        }
+      </nav>
+    </footer>
+  </article>
+</BaseLayout>
+
+<script>
+  import { load } from '../lib/progress';
+
+  // 現在読んでいる層を目次で示す
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc]'));
+  const ids = [...new Set(links.map((a) => a.dataset.toc!))];
+  const heads = ids.map((id) => document.getElementById(id)).filter((h): h is HTMLElement => h !== null);
+  // 本文に存在しない層は目次から隠す
+  links.forEach((a) => {
+    if (!document.getElementById(a.dataset.toc!)) (a.closest('li') ?? a).hidden = true;
+  });
+  const update = () => {
+    let current: string | undefined;
+    for (const h of heads) if (h.getBoundingClientRect().top < window.innerHeight * 0.35) current = h.id;
+    links.forEach((a) => a.toggleAttribute('aria-current', a.dataset.toc === current));
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+
+  const syncProgress = () => {
+    const p = load().problems;
+    document.querySelectorAll<HTMLElement>('[data-toc-ex]').forEach((a) => {
+      a.dataset.state = p[a.dataset.tocEx!]?.state ?? '';
+    });
+  };
+  window.addEventListener('advmath:progress', syncProgress);
+  syncProgress();
+</script>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 0 28px;
+    padding-top: 3.2rem;
+    padding-bottom: 1.6rem;
+  }
+
+  @media (min-width: 800px) {
+    .hero {
+      grid-template-columns: auto 1fr;
+      align-items: end;
+      padding-top: 4.5rem;
+    }
+  }
+
+  .num {
+    font-family: var(--font-serif);
+    font-size: clamp(4.5rem, 3rem + 7vw, 8.5rem);
+    line-height: 0.9;
+    color: transparent;
+    -webkit-text-stroke: 1.4px var(--vermilion);
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    margin: 0.2rem 0 0.6rem;
+    font-size: clamp(1.8rem, 1.3rem + 2.4vw, 2.8rem);
+  }
+
+  .summary {
+    margin: 0;
+    max-width: 36em;
+    color: var(--ink-2);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 1rem;
+  }
+
+  .position {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 1rem;
+  }
+
+  @media (min-width: 900px) {
+    .position {
+      grid-template-columns: 1fr 1.6fr;
+    }
+  }
+
+  .payoff {
+    padding: 1.2rem 1.4rem;
+    border-radius: var(--radius-lg);
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .payoff .eyebrow {
+    margin: 0 0 0.4rem;
+    color: color-mix(in srgb, var(--bg) 70%, transparent);
+  }
+
+  .payoff p:last-child {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.08rem;
+    line-height: 1.75;
+  }
+
+  .meta {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    font-size: 0.9rem;
+  }
+
+  .meta > div {
+    padding: 0.8rem 1.2rem;
+  }
+
+  .meta > div + div {
+    border-top: 1px solid var(--line);
+  }
+
+  dt {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  dd {
+    margin: 0.15rem 0 0;
+    color: var(--ink);
+  }
+
+  dd ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 1.2em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  dd li::before {
+    content: '・';
+    color: var(--ink-3);
+  }
+
+  .body {
+    display: grid;
+    gap: 40px;
+    padding-top: 1rem;
+  }
+
+  @media (min-width: 1100px) {
+    .body {
+      grid-template-columns: 220px minmax(0, 1fr);
+    }
+  }
+
+  /* 目次を出さない幅では、単元全体を1本の読みやすい列にそろえる */
+  @media (max-width: 1099px) {
+    .hero,
+    .position,
+    .body,
+    .unit-foot,
+    .layer-bar-inner {
+      max-width: calc(var(--measure) + 2 * var(--gutter));
+    }
+
+    .position {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .layer-bar {
+    position: sticky;
+    top: 86px;
+    z-index: 20;
+    margin-top: 0.5rem;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  @media (min-width: 860px) {
+    .layer-bar {
+      top: var(--header-h);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .layer-bar {
+      display: none;
+    }
+  }
+
+  .layer-bar-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 2px;
+  }
+
+  .layer-bar a {
+    flex: 1;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .layer-bar a[aria-current] {
+    color: var(--ink);
+    font-weight: 700;
+    border-bottom-color: var(--vermilion);
+  }
+
+  .toc {
+    display: none;
+  }
+
+  @media (min-width: 1100px) {
+    .toc {
+      display: block;
+    }
+
+    .toc nav {
+      position: sticky;
+      top: calc(var(--header-h) + 32px);
+      max-height: calc(100vh - var(--header-h) - 64px);
+      overflow-y: auto;
+      padding-top: 3.4rem;
+    }
+  }
+
+  .toc-title {
+    margin: 0 0 0.4rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+
+  .toc ol {
+    list-style: none;
+    margin: 0 0 1.6rem;
+    padding: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: -1px;
+    padding: 4px 0 4px 14px;
+    border-left: 2px solid transparent;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .toc a:hover {
+    color: var(--ink);
+  }
+
+  .toc a[aria-current] {
+    border-left-color: var(--vermilion);
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-strong);
+  }
+
+  .toc a[data-state='solved'] .dot {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .toc a[data-state='review'] .dot {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+
+  .unit-foot {
+    margin-top: 4rem;
+  }
+
+  .rels h2 {
+    font-size: 1.3rem;
+  }
+
+  .rels ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 720px) {
+    .rels ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .rels a {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .rels a:hover {
+    border-color: var(--line-strong);
+  }
+
+  .rel-label {
+    grid-column: 1 / -1;
+    font-size: 0.72rem;
+    color: var(--ink-3);
+  }
+
+  .rel-num {
+    font-family: var(--font-serif);
+    color: var(--vermilion);
+  }
+
+  .rel-title {
+    font-weight: 700;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 2.5rem;
+  }
+
+  .pager a {
+    display: grid;
+    gap: 2px;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  .pager a span {
+    font-size: 0.78rem;
+    color: var(--ink-3);
+  }
+
+  .pager .next {
+    text-align: right;
+    grid-column: 2;
+  }
+</style>

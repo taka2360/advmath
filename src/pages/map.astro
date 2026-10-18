@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ConceptMap from '../components/home/ConceptMap.astro';
+import { allUnits, edgesOf, pad2 } from '../lib/units';
+import { unitUrl } from '../lib/url';
+
+const units = await allUnits();
+const byId = new Map(units.map((u) => [u.id, u]));
+const edges = edgesOf(units);
+const label = { prerequisite: '前提', application: '応用', related: '関連' } as const;
+const explain = {
+  prerequisite: '先の単元を読むときに、元の単元の内容を使う。',
+  application: '元の単元の道具が、先の単元の問題に化けて現れる。',
+  related: '同じ考え方が別の形で現れる。どちらから読んでもよい。',
+} as const;
+---
+
+<BaseLayout title="概念マップ" description="12単元のつながりを、前提・応用・関連の3種類の線で表した地図。">
+  <header class="wrap page-head">
+    <p class="eyebrow">Map</p>
+    <h1>概念マップ</h1>
+    <p>12の単元を、分野ごとに色分けして配置しました。丸をクリックすると単元に移動します。線の種類で、つながり方の違いを表しています。</p>
+  </header>
+  <div class="wrap">
+    <div class="map-box"><ConceptMap units={units} /></div>
+  </div>
+  <section class="wrap rels" aria-labelledby="rels-h">
+    <h2 id="rels-h">つながりの一覧</h2>
+    {
+      (['prerequisite', 'application', 'related'] as const).map((k) => {
+        const list = edges.filter((e) => e.kind === k);
+        return (
+          list.length > 0 && (
+            <div class="kind">
+              <h3>{label[k]}</h3>
+              <p>{explain[k]}</p>
+              <ul>
+                {list.map((e) => {
+                  const a = byId.get(e.from)!;
+                  const b = byId.get(e.to)!;
+                  return (
+                    <li>
+                      <a href={unitUrl(a.id)}>
+                        {pad2(a.data.order)} {a.data.title}
+                      </a>
+                      <span class="arrow">{k === 'related' ? '—' : '→'}</span>
+                      <a href={unitUrl(b.id)}>
+                        {pad2(b.data.order)} {b.data.title}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )
+        );
+      })
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .map-box {
+    overflow-x: auto;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  .map-box :global(svg) {
+    min-width: 680px;
+  }
+
+  .rels {
+    margin-top: 3rem;
+  }
+
+  .rels h2 {
+    font-size: 1.4rem;
+  }
+
+  .kind {
+    margin-top: 1.6rem;
+  }
+
+  .kind h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  .kind p {
+    margin: 0.2rem 0 0.6rem;
+    font-size: 0.88rem;
+    color: var(--ink-2);
+  }
+
+  ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: baseline;
+    font-size: 0.92rem;
+  }
+
+  .arrow {
+    color: var(--ink-3);
+  }
+</style>

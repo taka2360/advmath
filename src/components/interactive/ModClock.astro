@@ -1,0 +1,83 @@
+---
+import Figure from './Figure.astro';
+import { H, W, modReadout, modScene, type ModState } from '../../lib/scenes/modclock';
+
+const st: ModState = { m: 7, a: 3 };
+---
+
+<Figure
+  name="modclock"
+  title="累乗は時計の上をめぐる"
+  state={st}
+  scene={modScene(st)}
+  readout={modReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="法 m の剰余を円周上に並べ、a の累乗の余りを順に線で結んだ図"
+  legend={[
+    { label: '現れる余り', color: 'var(--accent)', kind: 'dot' },
+    { label: '余り 1', color: 'var(--vermilion)', kind: 'dot' },
+  ]}
+>
+  <Fragment slot="controls">
+    <label>
+      <span>法 m = <span class="ctl-value" data-out="m">{st.m}</span></span>
+      <input type="range" min="2" max="24" step="1" value={st.m} data-in="m" />
+    </label>
+    <label>
+      <span>底 a = <span class="ctl-value" data-out="a">{st.a}</span></span>
+      <input type="range" min="1" max="30" step="1" value={st.a} data-in="a" />
+    </label>
+  </Fragment>
+  <slot />
+</Figure>
+
+<style is:global>
+  .fig-canvas .ring {
+    fill: none;
+    stroke: var(--line-strong);
+  }
+
+  .fig-canvas .chord {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.2;
+  }
+
+  .fig-canvas .res {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+  }
+
+  .fig-canvas .res.on {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+
+  .fig-canvas .res.one {
+    fill: var(--vermilion);
+    stroke: var(--vermilion);
+  }
+</style>
+
+<script>
+  import { $, onFigures, onInput } from '../../lib/interaction';
+  import { modReadout, modScene, type ModState } from '../../lib/scenes/modclock';
+
+  onFigures('modclock', (root) => {
+    const st = JSON.parse(root.dataset.state!) as ModState;
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = modScene(st);
+      $(root, '[data-k="readout"]').innerHTML = modReadout(st);
+      $(root, '[data-out="m"]').textContent = String(st.m);
+      $(root, '[data-out="a"]').textContent = String(st.a);
+    };
+    for (const key of ['m', 'a'] as const) {
+      onInput($<HTMLInputElement>(root, `[data-in="${key}"]`), (el) => {
+        st[key] = Number(el.value);
+        draw();
+      });
+    }
+  });
+</script>

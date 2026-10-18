@@ -1,0 +1,120 @@
+---
+import Figure from './Figure.astro';
+import { H, PRESETS, W, matrixReadout, matrixScene, toPx, type MatrixState } from '../../lib/scenes/matrix';
+
+interface Props {
+  preset?: string;
+}
+const p = PRESETS.find((q) => q.id === (Astro.props.preset ?? 'sym')) ?? PRESETS[0]!;
+const st: MatrixState = { m: [...p.m], v: [1.5, 0.5] };
+const V = toPx(st.v);
+const names = ['a', 'b', 'c', 'd'] as const;
+---
+
+<Figure
+  name="matrix"
+  title="行列は平面をどう動かすか"
+  state={st}
+  scene={matrixScene(st)}
+  readout={matrixReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="行列による一次変換で方眼が変形する様子と、固有ベクトルの方向"
+  hint="黒いベクトル v の先端をドラッグ。Av と同じ直線に乗ると緑になります"
+  legend={[
+    { label: '変形後の方眼', color: 'var(--accent)' },
+    { label: '単位正方形の像', color: 'var(--vermilion)', kind: 'area' },
+    { label: '固有方向', color: 'var(--green)' },
+  ]}
+>
+  <Fragment slot="overlay">
+    <g class="handle" data-k="hv" tabindex="0" role="slider" aria-label="ベクトル v の先端" transform={`translate(${V[0]} ${V[1]})`}>
+      <circle r="22" fill="transparent"></circle>
+      <circle r="8" class="knob"></circle>
+    </g>
+  </Fragment>
+  <Fragment slot="controls">
+    <div class="ctl" style="grid-column: 1 / -1">
+      <span>例</span>
+      <div class="seg" data-k="presets">
+        {
+          PRESETS.map((q) => (
+            <button type="button" data-value={q.id} aria-pressed={q.id === p.id ? 'true' : 'false'}>
+              {q.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    {
+      names.map((n, i) => (
+        <label>
+          <span>
+            {n} = <span class="ctl-value" data-out={n}>{st.m[i]!.toFixed(2)}</span>
+          </span>
+          <input type="range" min="-3" max="3" step="0.05" value={st.m[i]} data-in={n} data-i={i} />
+        </label>
+      ))
+    }
+  </Fragment>
+  <slot />
+</Figure>
+
+<style is:global>
+  .fig-canvas .tgrid {
+    stroke: color-mix(in srgb, var(--accent) 38%, transparent);
+    stroke-width: 1;
+    fill: none;
+  }
+
+  .fig-canvas .eig {
+    stroke: var(--green);
+    stroke-width: 2;
+    stroke-dasharray: 8 6;
+    fill: none;
+  }
+</style>
+
+<script>
+  import { $, draggable, onFigures, onInput, segmented } from '../../lib/interaction';
+  import { PRESETS, matrixReadout, matrixScene, toMath, toPx, type MatrixState } from '../../lib/scenes/matrix';
+
+  onFigures('matrix', (root) => {
+    const st = JSON.parse(root.dataset.state!) as MatrixState;
+    const svg = $<SVGSVGElement>(root, 'svg');
+    const inputs = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-i]'));
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = matrixScene(st);
+      $(root, '[data-k="readout"]').innerHTML = matrixReadout(st);
+      inputs.forEach((el) => {
+        const i = Number(el.dataset.i);
+        $(root, `[data-out="${el.dataset.in}"]`).textContent = st.m[i]!.toFixed(2);
+      });
+      const [x, y] = toPx(st.v);
+      $(root, '[data-k="hv"]').setAttribute('transform', `translate(${x} ${y})`);
+    };
+    inputs.forEach((el) =>
+      onInput(el, () => {
+        st.m[Number(el.dataset.i)] = Number(el.value);
+        root.querySelectorAll('[data-k="presets"] button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        draw();
+      }),
+    );
+    segmented($(root, '[data-k="presets"]'), (id) => {
+      const p = PRESETS.find((q) => q.id === id)!;
+      st.m = [...p.m];
+      inputs.forEach((el) => (el.value = String(st.m[Number(el.dataset.i)])));
+      draw();
+    });
+    draggable($(root, '[data-k="hv"]'), svg, {
+      onDrag: (p) => {
+        st.v = toMath(p.x, p.y);
+        draw();
+      },
+      onKey: (dx, dy) => {
+        st.v = [Math.round((st.v[0] + dx * 0.1) * 10) / 10, Math.round((st.v[1] + dy * 0.1) * 10) / 10];
+        draw();
+      },
+    });
+  });
+</script>

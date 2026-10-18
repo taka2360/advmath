@@ -1,0 +1,68 @@
+---
+import Figure from './Figure.astro';
+import { H, W, asymReadout, asymScene, type AsymState } from '../../lib/scenes/asymptotic';
+
+interface Props {
+  mode?: AsymState['mode'];
+}
+const mode = Astro.props.mode ?? 'sum';
+const st: AsymState = { mode, n: mode === 'sum' ? 6 : mode === 'wallis' ? 4 : 12 };
+const cfg = {
+  sum: { title: '和を積分ではさむ', min: 2, max: 14, label: 'n' },
+  wallis: { title: 'ウォリス積分：sinⁿ x の下の面積', min: 1, max: 40, label: 'n' },
+  stirling: { title: 'スターリングの近似の精度', min: 1, max: 60, label: '表示する n の最大' },
+}[mode];
+---
+
+<Figure
+  name="asymptotic"
+  title={cfg.title}
+  state={st}
+  scene={asymScene(st)}
+  readout={asymReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel={cfg.title}
+>
+  <Fragment slot="controls">
+    <label>
+      <span>{cfg.label} = <span class="ctl-value" data-out="n">{st.n}</span></span>
+      <input type="range" min={cfg.min} max={cfg.max} step="1" value={st.n} data-in="n" />
+    </label>
+  </Fragment>
+  <slot />
+</Figure>
+
+<style is:global>
+  .fig-canvas .rect-up {
+    fill: color-mix(in srgb, var(--vermilion) 16%, transparent);
+    stroke: color-mix(in srgb, var(--vermilion) 60%, transparent);
+  }
+
+  .fig-canvas .rect-lo {
+    fill: color-mix(in srgb, var(--accent) 16%, transparent);
+    stroke: color-mix(in srgb, var(--accent) 60%, transparent);
+    stroke-dasharray: 3 3;
+  }
+
+  .fig-canvas .faint {
+    fill: none;
+    stroke: var(--grid-strong);
+    stroke-width: 1.2;
+  }
+</style>
+
+<script>
+  import { $, onFigures, onInput } from '../../lib/interaction';
+  import { asymReadout, asymScene, type AsymState } from '../../lib/scenes/asymptotic';
+
+  onFigures('asymptotic', (root) => {
+    const st = JSON.parse(root.dataset.state!) as AsymState;
+    onInput($<HTMLInputElement>(root, '[data-in="n"]'), (el) => {
+      st.n = Number(el.value);
+      $(root, '[data-out="n"]').textContent = el.value;
+      $(root, '[data-k="scene"]').innerHTML = asymScene(st);
+      $(root, '[data-k="readout"]').innerHTML = asymReadout(st);
+    });
+  });
+</script>

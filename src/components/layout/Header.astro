@@ -1,0 +1,228 @@
+---
+import { url } from '../../lib/url';
+import Logo from './Logo.astro';
+
+const path = Astro.url.pathname;
+const nav = [
+  { href: url('units/'), label: '単元' },
+  { href: url('map/'), label: '地図' },
+  { href: url('review/'), label: '復習' },
+  { href: url('about/'), label: 'この教材について' },
+];
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href={url()} aria-label="範囲の外側 トップへ">
+      <Logo />
+      <span class="brand-text">
+        <span class="brand-name">範囲の外側</span>
+        <span class="brand-sub">Beyond the Syllabus</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="サイト">
+      {
+        nav.map((n) => (
+          <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
+            {n.label}
+          </a>
+        ))
+      }
+    </nav>
+    <div class="tools">
+      <button class="icon-btn" type="button" data-search-open aria-label="検索 (Ctrl+K)">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"
+          ><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"></circle><path
+            d="m15.5 15.5 5 5"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"></path></svg
+        >
+        <kbd class="kbd">Ctrl K</kbd>
+      </button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="ライト/ダークの切替">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"
+          ><path
+            d="M12 3a9 9 0 1 0 9 9A7 7 0 0 1 12 3Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linejoin="round"></path></svg
+        >
+      </button>
+    </div>
+  </div>
+  <nav class="nav-sm wrap" aria-label="サイト (小画面)">
+    {
+      nav.map((n) => (
+        <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
+          {n.label}
+        </a>
+      ))
+    }
+  </nav>
+</header>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  btn?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const current =
+      root.dataset.theme ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem('advmath:theme', next);
+    } catch {
+      /* 保存できなくても切替は効く */
+    }
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: var(--header-h);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .brand-text {
+    display: grid;
+    line-height: 1.15;
+  }
+
+  .brand-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+  }
+
+  .brand-sub {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+
+  .nav {
+    display: none;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .nav a {
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .nav a:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .nav a[aria-current='page'] {
+    color: var(--ink);
+    background: var(--surface-2);
+  }
+
+  .tools {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .nav-sm {
+    display: flex;
+    gap: 2px;
+    padding-bottom: 6px;
+    margin-top: -4px;
+  }
+
+  .nav-sm a {
+    padding: 2px 10px;
+    border-radius: 999px;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .nav-sm a[aria-current='page'] {
+    color: var(--ink);
+    background: var(--surface-2);
+  }
+
+  @media (min-width: 860px) {
+    .nav {
+      display: flex;
+    }
+
+    .nav-sm {
+      display: none;
+    }
+
+    .tools {
+      margin-left: 8px;
+    }
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 40px;
+    height: 40px;
+    justify-content: center;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .icon-btn:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .kbd {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    color: var(--ink-3);
+  }
+
+  @media (min-width: 1000px) {
+    .kbd {
+      display: inline;
+    }
+  }
+</style>

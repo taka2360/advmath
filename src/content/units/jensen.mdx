@@ -1,0 +1,247 @@
+---
+order: 3
+title: 凸関数とイェンセンの不等式
+hook: 「弦は曲線の上」という一枚の絵から、相加相乗も三角形の不等式も出てくる。
+summary: グラフが下に膨らんだ関数では、弦が必ず曲線の上にある。この事実を重み付きの平均に拡張したのがイェンセンの不等式で、入試の対称な不等式の多くはこの形をしている。
+payoff: 「a + b + c = 3 のとき〜を示せ」「三角形 ABC で sin A + sin B + sin C の最大値」のような対称な不等式を見た瞬間に、等号成立条件と証明の方針（接線の不等式）が分かるようになる。
+minutes: 35
+outsideType: 一般化
+hsPrerequisites:
+  - 第2次導関数とグラフの凹凸
+  - 接線の方程式
+  - 増減表による不等式の証明
+newTools:
+  - 凸関数の定義
+  - イェンセンの不等式（重み付き）
+  - 接線トリック
+backToHS: 平均の点での接線を引き、「関数 ≥ 接線」（上に凸なら ≤）を増減で示してから足し合わせる。これだけで範囲内の答案になる。
+edges:
+  prerequisite: []
+  application: []
+  related: [cauchy-schwarz]
+aliases:
+  - 凸関数
+  - 下に凸
+  - 上に凸
+  - Jensen
+  - 接線トリック
+  - 相加相乗平均
+  - 凹関数
+pitfalls:
+  - 凸性は「すべての点を含む区間全体」で必要。一部で凸なだけでは使えない
+  - 重みは非負で、和が 1 でなければならない
+  - 定義域に注意（−log x, x log x は x > 0 のみ）
+  - 上に凸な関数では不等号の向きが逆になる
+  - 等号成立は（狭義凸なら）すべての点が一致するとき
+exercises:
+  - { id: jensen-1, title: 相加相乗平均, level: 基本 }
+  - { id: jensen-2, title: 三角形の正弦の和, level: 標準 }
+  - { id: jensen-3, title: x log x の和, level: 標準 }
+  - { id: jensen-4, title: 凸でない区間を含む関数, level: 発展 }
+map: { x: 30, y: 34, group: 解析, label: 凸関数とイェンセン }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import ConvexChord from '../../components/interactive/ConvexChord.astro';
+
+<Layer id="intuition">弦は曲線の上にある</Layer>
+
+グラフが下に膨らんだ（**下に凸な**）関数のグラフ上に2点をとって線分（弦）で結ぶと、弦はいつも曲線の上にあります。弦上の点は「2点の重み付き平均」、その真下の曲線上の点は「平均してから $f$ を施したもの」です。
+
+<ConvexChord>
+  白い点を動かしても、重みを変えても、$e^x,\ x^2,\ -\log x$ では緑の線分（弦と曲線の差）は決して負になりません。$\sin x$ に切り替えて点を大きく離すと、弦が曲線の下にもぐり込むことがあります。
+</ConvexChord>
+
+つまり下に凸な関数では「**平均してから $f$**」のほうが「**$f$ してから平均**」より小さい。これがイェンセンの不等式の中身のすべてです。
+
+<Layer id="tool">定義とイェンセンの不等式</Layer>
+
+<Theorem kind="定義" name="凸関数">
+
+区間 $I$ で定義された関数 $f$ が**下に凸**であるとは、$I$ の任意の $x_1, x_2$ と $0 \le t \le 1$ に対して
+
+$$
+f\big(t x_1 + (1-t) x_2\big) \le t f(x_1) + (1-t) f(x_2)
+$$
+
+が成り立つこと。不等号が逆向きなら**上に凸**という。
+
+</Theorem>
+
+$I$ で $f''(x) \ge 0$ ならば $f$ は $I$ で下に凸です（高校で学ぶ「凹凸」の判定と同じ）。
+
+<Theorem name="イェンセンの不等式">
+
+$f$ が区間 $I$ で下に凸、$x_1, \dots, x_n \in I$、重み $w_1, \dots, w_n$ が $w_i \ge 0,\ w_1 + \cdots + w_n = 1$ をみたすとき
+
+$$
+f\left(\sum_{i=1}^{n} w_i x_i\right) \le \sum_{i=1}^{n} w_i f(x_i).
+$$
+
+$f'' > 0$（狭義凸）なら、等号は正の重みをもつ $x_i$ がすべて等しいときに限る。上に凸なら不等号は逆向き。
+
+</Theorem>
+
+特に $w_i = \dfrac1n$ とすると $f\left(\dfrac{x_1 + \cdots + x_n}{n}\right) \le \dfrac{f(x_1) + \cdots + f(x_n)}{n}$。入試で出会うのはほとんどこの形です。
+
+<Pitfall title="凸性は区間全体で必要">
+
+$\sin x$ は $0 \le x \le \pi$ では上に凸ですが、$\pi < x < 2\pi$ では下に凸です。点がこの両方にまたがると、どちら向きの不等式も成り立ちません（図で確かめられます）。**すべての点を含む区間で**凸性を確認してください。
+
+</Pitfall>
+
+<Pitfall title="重みの条件と定義域">
+
+重みが負だったり和が $1$ でなかったりすると、不等式は一般に成り立ちません。また $-\log x$ や $x\log x$ は $x > 0$ でしか定義されないので、変数が正であることを必ず確認します。
+
+</Pitfall>
+
+<Layer id="why">接線の不等式から一行で</Layer>
+
+$f$ が微分可能な場合は、**接線の不等式**を経由すると高校範囲で証明できます。
+
+<Theorem kind="補題" name="接線の不等式">
+
+$I$ で $f'' \ge 0$ ならば、$I$ の任意の点 $m$ と $x$ について $f(x) \ge f(m) + f'(m)(x - m)$。
+
+</Theorem>
+
+<Proof>
+
+$g(x) = f(x) - f(m) - f'(m)(x - m)$ とおくと $g'(x) = f'(x) - f'(m)$。$f'' \ge 0$ より $f'$ は増加するので、$g'$ は $x < m$ で $0$ 以下、$x > m$ で $0$ 以上。よって $g$ は $x = m$ で最小値 $g(m) = 0$ をとり、$g(x) \ge 0$。
+
+</Proof>
+
+<Proof title="イェンセンの不等式の証明（f″ ≥ 0 の場合）">
+
+$m = \sum w_i x_i$ とおく。重みが非負で和が $1$ なので $m$ は $x_i$ の最小値と最大値の間にあり、$m \in I$。接線の不等式を各 $x_i$ に使って重み $w_i$ を掛けて足すと
+
+$$
+\sum w_i f(x_i) \ge \sum w_i \big\{ f(m) + f'(m)(x_i - m) \big\} = f(m) + f'(m)\Big(\sum w_i x_i - m\Big) = f(m).
+$$
+
+</Proof>
+
+重みの条件 $w_i \ge 0$ は「不等式に掛けても向きが変わらない」ため、$\sum w_i = 1$ は「$f(m)$ の係数が $1$ になり、$f'(m)$ の項が消える」ために使われています。条件の一つひとつに役割があることが分かります。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+> $a, b, c > 0,\ a + b + c = 3$ のとき、$a\log a + b\log b + c\log c \ge 0$ を示せ。
+
+<Craft kind="idea">
+
+$f(x) = x\log x$ は $f''(x) = \dfrac1x > 0$ で下に凸。イェンセンより $\dfrac{f(a) + f(b) + f(c)}{3} \ge f\left(\dfrac{a+b+c}{3}\right) = f(1) = 0$。**等号は $a = b = c = 1$** と、答えの形まで一瞬で分かります。
+
+</Craft>
+
+<Craft kind="direct">
+
+イェンセンの不等式を答案に使うなら、(1) $f$ が変数のとりうる区間全体で凸であること（$f'' > 0$ の計算）、(2) 重み（ここでは $\frac13$ ずつ）の確認、を書きます。範囲外の定理を根拠として認めるかどうかは試験の指示や採点方針次第なので、次の書き方も用意しておくと安全です。
+
+</Craft>
+
+<Craft kind="rebuild">
+
+**接線トリック．** 平均の点 $x = 1$ での接線は $y = x - 1$。そこで $g(x) = x\log x - (x - 1)$（$x > 0$）とおくと $g'(x) = \log x$ で、$g$ は $x = 1$ で最小値 $0$ をとる。よって $x\log x \ge x - 1$。
+
+$a, b, c$ について足し合わせると $a\log a + b\log b + c\log c \ge (a + b + c) - 3 = 0$。等号は $a = b = c = 1$ のとき。
+
+</Craft>
+
+接線トリックはイェンセンの証明そのものを具体的な関数で書き下したもので、**凸性を明示的に言わなくても成立する**のが強みです（演習4では、凸でない区間を含む関数にも使えることを見ます）。
+
+<Layer id="advanced">重み付き相加相乗平均</Layer>
+
+$-\log x$ は $x > 0$ で下に凸なので、正の数 $x_i$ と重み $w_i$ について $-\log\left(\sum w_i x_i\right) \le -\sum w_i \log x_i$。指数をとると
+
+$$
+x_1^{w_1} x_2^{w_2} \cdots x_n^{w_n} \le w_1 x_1 + w_2 x_2 + \cdots + w_n x_n .
+$$
+
+重みを $\frac1n$ にそろえれば相加相乗平均の不等式です。たとえば $w_1 = \dfrac1p,\ w_2 = \dfrac1q$（$\dfrac1p + \dfrac1q = 1$）とすると $ab \le \dfrac{a^p}{p} + \dfrac{b^q}{q}$（ヤングの不等式）が得られ、大学で学ぶヘルダーの不等式の出発点になります。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="jensen-1" n={1} title="相加相乗平均" level="基本">
+
+$a, b, c > 0$ のとき $\dfrac{a + b + c}{3} \ge \sqrt[3]{abc}$ を、$\log x$ が上に凸であることを用いて示せ。
+
+<Step kind="hint" n={1}>
+$(\log x)'' = -\dfrac{1}{x^2} < 0$。上に凸なので、イェンセンの不等号は逆向きです。
+</Step>
+
+<Step kind="answer">
+
+$\log$ は $x > 0$ で上に凸なので $\log\dfrac{a + b + c}{3} \ge \dfrac{\log a + \log b + \log c}{3} = \log\sqrt[3]{abc}$。$\log$ は増加関数なので結論を得る。等号は $a = b = c$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="jensen-2" n={2} title="三角形の正弦の和" level="標準">
+
+三角形 ABC において $\sin A + \sin B + \sin C \le \dfrac{3\sqrt3}{2}$ を示せ。答案は接線トリックで書くこと。
+
+<Step kind="hint" n={1}>
+$A + B + C = \pi$、各角は $0$ と $\pi$ の間。$\sin x$ は $0 \le x \le \pi$ で上に凸なので、平均 $\dfrac{\pi}{3}$ での接線より下にあります。
+</Step>
+
+<Step kind="approach">
+$x = \dfrac\pi3$ での接線 $y = \dfrac{\sqrt3}{2} + \dfrac12\left(x - \dfrac\pi3\right)$ を求め、$0 < x < \pi$ で $\sin x$ がこれ以下であることを示して足し合わせます。
+</Step>
+
+<Step kind="answer">
+
+$g(x) = \dfrac{\sqrt3}{2} + \dfrac12\left(x - \dfrac\pi3\right) - \sin x$ とおくと $g''(x) = \sin x > 0$（$0 < x < \pi$）なので $g'$ は増加し、$g'\left(\dfrac\pi3\right) = 0$ だから $g$ は $x = \dfrac\pi3$ で最小値 $0$ をとる。よって $\sin x \le \dfrac{\sqrt3}{2} + \dfrac12\left(x - \dfrac\pi3\right)$。
+
+$x = A, B, C$ として足すと $\sin A + \sin B + \sin C \le \dfrac{3\sqrt3}{2} + \dfrac12(A + B + C - \pi) = \dfrac{3\sqrt3}{2}$。等号は正三角形のとき。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="jensen-3" n={3} title="x log x の和" level="標準">
+
+$x, y > 0,\ x + y = 2$ のとき、$x^x y^y \ge 1$ を示せ。
+
+<Step kind="hint" n={1}>
+両辺の対数をとると $x\log x + y\log y \ge 0$。第4層の例と同じ形です。
+</Step>
+
+<Step kind="answer">
+
+$t\log t \ge t - 1$（$t > 0$）を第4層と同様に示し、$t = x, y$ で足すと $x\log x + y\log y \ge (x + y) - 2 = 0$。指数をとって $x^x y^y \ge 1$。等号は $x = y = 1$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="jensen-4" n={4} title="凸でない区間を含む関数" level="発展">
+
+$x, y, z > 0,\ x + y + z = 1$ のとき $\dfrac{x}{1 + x^2} + \dfrac{y}{1 + y^2} + \dfrac{z}{1 + z^2} \le \dfrac{9}{10}$ を示せ。
+
+<Step kind="hint" n={1}>
+$f(x) = \dfrac{x}{1 + x^2}$ は $0 < x < 1$ で上に凸です（$f''(x) = \dfrac{2x(x^2 - 3)}{(1 + x^2)^3}$）。平均は $\dfrac13$。
+</Step>
+
+<Step kind="hint" n={2}>
+$x = \dfrac13$ での接線は $y = \dfrac{36x + 3}{50}$ です。
+</Step>
+
+<Step kind="answer">
+
+$0 < x < 1$ で $\dfrac{36x + 3}{50} - \dfrac{x}{1 + x^2} = \dfrac{36x^3 + 3x^2 - 14x + 3}{50(1 + x^2)} = \dfrac{(3x - 1)^2(4x + 3)}{50(1 + x^2)} \ge 0$。
+
+$x, y, z$ について足すと、左辺 $\le \dfrac{36(x + y + z) + 9}{50} = \dfrac{45}{50} = \dfrac{9}{10}$。等号は $x = y = z = \dfrac13$。
+
+※ 因数分解の形から、この接線の不等式は実は $x > -\dfrac34$ 全体で成り立ちます。$f$ が凸でない範囲にも及ぶので、**接線トリックはイェンセンより適用範囲が広い**ことが分かります。
+
+</Step>
+
+</Exercise>

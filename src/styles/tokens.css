@@ -1,0 +1,84 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f4ee;
+  --surface: #fffdf8;
+  --surface-2: #efece3;
+  --ink: #1c1b19;
+  --ink-2: #47443e;
+  --ink-3: #6f6b63;
+  --line: #dcd7cb;
+  --line-strong: #bdb6a7;
+  --accent: #2c49c4;
+  --accent-ink: #1e379d;
+  --accent-soft: #e3e8fa;
+  --vermilion: #b93d14;
+  --vermilion-soft: #f7e2d7;
+  --green: #22704f;
+  --green-soft: #dcefe5;
+  --amber: #8a5a00;
+  --amber-soft: #f6ead0;
+  --grid: #e6e1d6;
+  --grid-strong: #cfc8b8;
+  --shadow: 0 1px 2px rgb(40 30 10 / 0.05), 0 8px 24px -12px rgb(40 30 10 / 0.18);
+
+  --font-sans: 'BIZ UDPGothic', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic Medium', 'YuGothic',
+    'Noto Sans JP', 'Meiryo', system-ui, sans-serif;
+  --font-serif: 'Zen Old Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif JP', serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+
+  --measure: 40em;
+  --gutter: 16px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --header-h: 56px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #121214;
+    --surface: #1a1a1e;
+    --surface-2: #232328;
+    --ink: #ecebe6;
+    --ink-2: #c3c0b8;
+    --ink-3: #96938b;
+    --line: #34343b;
+    --line-strong: #4a4a52;
+    --accent: #93a8ff;
+    --accent-ink: #b5c3ff;
+    --accent-soft: #232a4d;
+    --vermilion: #ff9468;
+    --vermilion-soft: #3b231a;
+    --green: #74d3a6;
+    --green-soft: #17342a;
+    --amber: #f0c060;
+    --amber-soft: #3a2f16;
+    --grid: #26262c;
+    --grid-strong: #3a3a42;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #121214;
+  --surface: #1a1a1e;
+  --surface-2: #232328;
+  --ink: #ecebe6;
+  --ink-2: #c3c0b8;
+  --ink-3: #96938b;
+  --line: #34343b;
+  --line-strong: #4a4a52;
+  --accent: #93a8ff;
+  --accent-ink: #b5c3ff;
+  --accent-soft: #232a4d;
+  --vermilion: #ff9468;
+  --vermilion-soft: #3b231a;
+  --green: #74d3a6;
+  --green-soft: #17342a;
+  --amber: #f0c060;
+  --amber-soft: #3a2f16;
+  --grid: #26262c;
+  --grid-strong: #3a3a42;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.6);
+}

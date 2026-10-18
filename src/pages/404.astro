@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/url';
+---
+
+<BaseLayout title="ページが見つかりません" noindex>
+  <section class="wrap nf">
+    <p class="code" aria-hidden="true">404</p>
+    <h1>このページは、範囲の外側にもありませんでした。</h1>
+    <p>URL が変わったか、入力に誤りがあるかもしれません。</p>
+    <div class="links">
+      <a class="btn btn-primary" href={url()}>トップへ</a>
+      <a class="btn" href={url('units/')}>単元一覧</a>
+      <button class="btn" type="button" data-search-open>検索する</button>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    padding-top: 5rem;
+    text-align: center;
+  }
+
+  .code {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(5rem, 3rem + 10vw, 9rem);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--vermilion);
+  }
+
+  h1 {
+    font-size: clamp(1.3rem, 1.1rem + 1vw, 1.8rem);
+  }
+
+  p {
+    color: var(--ink-2);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 1.5rem;
+  }
+</style>

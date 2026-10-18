@@ -1,0 +1,56 @@
+---
+interface Props {
+  kind?: '定理' | '定義' | '公式' | '命題' | '補題' | '系';
+  name?: string;
+}
+const { kind = '定理', name } = Astro.props;
+---
+
+<div class="thm" data-kind={kind}>
+  <div class="thm-label"><span class="k">{kind}</span>{name && <span class="n">{name}</span>}</div>
+  <div class="thm-body"><slot /></div>
+</div>
+
+<style>
+  .thm {
+    margin: 1.8em 0;
+    padding: 1em 1.2em 1.1em;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+    border-left: 4px solid var(--accent);
+    border-radius: 4px var(--radius) var(--radius) 4px;
+    background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface));
+  }
+
+  .thm[data-kind='定義'] {
+    border-color: color-mix(in srgb, var(--green) 30%, var(--line));
+    border-left-color: var(--green);
+    background: color-mix(in srgb, var(--green-soft) 50%, var(--surface));
+  }
+
+  .thm-label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+    align-items: baseline;
+    font-family: var(--font-serif);
+    font-weight: 700;
+  }
+
+  .k {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    color: var(--accent-ink);
+  }
+
+  .thm[data-kind='定義'] .k {
+    color: var(--green);
+  }
+
+  .n {
+    font-size: 1.02rem;
+  }
+
+  .thm-body :global(> :first-child) {
+    margin-top: 0.4em;
+  }
+</style>

@@ -1,0 +1,100 @@
+---
+import Figure from './Figure.astro';
+import { H, W, recReadout, recScene, type RecState } from '../../lib/scenes/recurrence';
+
+const st: RecState = { p: 1, q: 1, a0: 0, a1: 1 };
+const sliders = [
+  { key: 'p', label: 'p', min: -3, max: 3, step: 0.25 },
+  { key: 'q', label: 'q', min: -3, max: 3, step: 0.25 },
+  { key: 'a0', label: 'a₀', min: -3, max: 3, step: 0.5 },
+  { key: 'a1', label: 'a₁', min: -3, max: 3, step: 0.5 },
+] as const;
+const presets = [
+  { label: 'フィボナッチ', v: { p: 1, q: 1, a0: 0, a1: 1 } },
+  { label: '重解', v: { p: 2, q: -1, a0: 3, a1: 5 } },
+  { label: '虚数解（振動）', v: { p: 1, q: -1, a0: 1, a1: 2 } },
+  { label: '減衰振動', v: { p: 1, q: -0.5, a0: 2, a1: 0 } },
+];
+---
+
+<Figure
+  name="recurrence"
+  title="特性方程式の根が、数列の運命を決める"
+  state={st}
+  scene={recScene(st)}
+  readout={recReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="3項間漸化式で計算した数列の棒グラフと、一般項の式で計算した値、特性方程式の根"
+  legend={[
+    { label: '漸化式の値', color: 'var(--accent)', kind: 'area' },
+    { label: '一般項の値', color: 'var(--vermilion)', kind: 'dot' },
+  ]}
+>
+  <Fragment slot="controls">
+    <div class="ctl" style="grid-column: 1 / -1">
+      <span>例</span>
+      <div class="ctl-row" data-k="presets">
+        {
+          presets.map((p) => (
+            <button type="button" class="btn" data-preset={JSON.stringify(p.v)}>
+              {p.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    {
+      sliders.map((s) => (
+        <label>
+          <span>
+            {s.label} = <span class="ctl-value" data-out={s.key}>{st[s.key]}</span>
+          </span>
+          <input type="range" min={s.min} max={s.max} step={s.step} value={st[s.key]} data-in={s.key} />
+        </label>
+      ))
+    }
+  </Fragment>
+  <slot />
+</Figure>
+
+<style is:global>
+  .fig-canvas .bar {
+    fill: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+
+  .fig-note {
+    font-size: 0.8rem;
+    color: var(--ink-3);
+  }
+</style>
+
+<script>
+  import { $, onFigures, onInput } from '../../lib/interaction';
+  import { recReadout, recScene, type RecState } from '../../lib/scenes/recurrence';
+
+  onFigures('recurrence', (root) => {
+    const st = JSON.parse(root.dataset.state!) as RecState;
+    const keys = ['p', 'q', 'a0', 'a1'] as const;
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = recScene(st);
+      $(root, '[data-k="readout"]').innerHTML = recReadout(st);
+      for (const k of keys) {
+        $(root, `[data-out="${k}"]`).textContent = String(st[k]);
+        $<HTMLInputElement>(root, `[data-in="${k}"]`).value = String(st[k]);
+      }
+    };
+    for (const k of keys) {
+      onInput($<HTMLInputElement>(root, `[data-in="${k}"]`), (el) => {
+        st[k] = Number(el.value);
+        draw();
+      });
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) =>
+      b.addEventListener('click', () => {
+        Object.assign(st, JSON.parse(b.dataset.preset!));
+        draw();
+      }),
+    );
+  });
+</script>

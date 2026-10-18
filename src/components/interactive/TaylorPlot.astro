@@ -1,0 +1,241 @@
+---
+import { TAYLOR_FNS, type TaylorFnName } from '../../math/taylor';
+import { H, W, taylorReadout, taylorScene, type TaylorState } from '../../lib/scenes/taylor';
+
+interface Props {
+  title?: string;
+  fn?: TaylorFnName;
+  n?: number;
+  a?: number;
+  x?: number;
+  fns?: TaylorFnName[];
+}
+
+const {
+  title = 'テイラー多項式が関数に張り付く',
+  fn = 'sin',
+  n = 3,
+  a = 0,
+  x = 2,
+  fns = ['sin', 'cos', 'exp', 'log1p'],
+} = Astro.props;
+const init: TaylorState = { fn, n, a, x };
+const sc = taylorScene(init);
+const range = TAYLOR_FNS[fn].centerRange;
+---
+
+<figure class="fig taylor" data-figure="taylor" data-state={JSON.stringify(init)}>
+  <div class="fig-head">
+    <h3 class="fig-title">{title}</h3>
+    <span class="legend">
+      <span class="lg f">f(x)</span><span class="lg p">テイラー多項式 P<sub>n</sub>(x)</span><span class="lg b"
+        >収束する範囲</span
+      >
+    </span>
+  </div>
+  <svg
+    class="fig-canvas"
+    viewBox={`0 0 ${W} ${H}`}
+    role="img"
+    aria-label={`${TAYLOR_FNS[fn].label} と、x = ${a} を中心とする ${n} 次のテイラー多項式のグラフ`}
+  >
+    <rect data-k="band" class="band" x={sc.band?.x ?? 0} y="0" width={sc.band?.w ?? 0} height={H}></rect>
+    <path data-k="grid" class="s-grid" d={sc.grid} fill="none"></path>
+    <path data-k="axes" class="s-axis" d={sc.axes} fill="none"></path>
+    <line data-k="center" class="center" x1={sc.centerX} x2={sc.centerX} y1="0" y2={H}></line>
+    <path data-k="f" class="curve-f" d={sc.fPath}></path>
+    <path data-k="p" class="curve-p" d={sc.pPath}></path>
+    <line data-k="err" class="err" x1={sc.probe.x} x2={sc.probe.x} y1={sc.probe.fy} y2={sc.probe.py}></line>
+    <circle data-k="pdot" class="pdot" cx={sc.probe.x} cy={sc.probe.py} r="5"></circle>
+    <g
+      data-k="handle"
+      class="handle"
+      tabindex="0"
+      role="slider"
+      aria-label="調べる点 x の位置"
+      aria-valuenow={x}
+      transform={`translate(${sc.probe.x} ${sc.probe.fy})`}
+    >
+      <circle r="22" fill="transparent"></circle>
+      <circle r="7" class="hdot"></circle>
+    </g>
+    <text data-k="alabel" class="alabel" x={sc.centerX + 6} y="18">中心 a</text>
+  </svg>
+  <div class="fig-controls">
+    <div class="ctl">
+      <span>関数</span>
+      <div class="seg" data-k="fns">
+        {
+          fns.map((f) => (
+            <button type="button" data-value={f} aria-pressed={f === fn ? 'true' : 'false'}>
+              {TAYLOR_FNS[f].label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <label>
+      <span>次数 n = <span class="ctl-value" data-out="n">{n}</span></span>
+      <input type="range" min="0" max="20" step="1" value={n} data-in="n" />
+    </label>
+    <label>
+      <span>展開の中心 a = <span class="ctl-value" data-out="a">{a.toFixed(1)}</span></span>
+      <input type="range" min={range[0]} max={range[1]} step="0.1" value={a} data-in="a" />
+    </label>
+  </div>
+  <div class="fig-readout" data-k="readout" aria-live="polite" set:html={taylorReadout(init, sc)} />
+  <figcaption class="fig-caption"><slot /></figcaption>
+</figure>
+
+<script>
+  import { $, draggable, onFigures, onInput, segmented } from '../../lib/interaction';
+  import { TAYLOR_FNS, type TaylorFnName } from '../../math/taylor';
+  import { probeFromPx, taylorReadout, taylorScene, type TaylorState } from '../../lib/scenes/taylor';
+
+  onFigures('taylor', (root) => {
+    const st = JSON.parse(root.dataset.state!) as TaylorState;
+    const svg = $<SVGSVGElement>(root, 'svg');
+    const k = (name: string) => $<SVGElement>(root, `[data-k="${name}"]`);
+    const nIn = $<HTMLInputElement>(root, '[data-in="n"]');
+    const aIn = $<HTMLInputElement>(root, '[data-in="a"]');
+
+    function draw() {
+      const sc = taylorScene(st);
+      k('grid').setAttribute('d', sc.grid);
+      k('axes').setAttribute('d', sc.axes);
+      k('f').setAttribute('d', sc.fPath);
+      k('p').setAttribute('d', sc.pPath);
+      const band = k('band');
+      band.setAttribute('x', String(sc.band?.x ?? 0));
+      band.setAttribute('width', String(sc.band?.w ?? 0));
+      for (const attr of ['x1', 'x2']) k('center').setAttribute(attr, String(sc.centerX));
+      k('alabel').setAttribute('x', String(sc.centerX + 6));
+      const err = k('err');
+      err.setAttribute('x1', String(sc.probe.x));
+      err.setAttribute('x2', String(sc.probe.x));
+      err.setAttribute('y1', String(sc.probe.fy));
+      err.setAttribute('y2', String(sc.probe.py));
+      k('pdot').setAttribute('cx', String(sc.probe.x));
+      k('pdot').setAttribute('cy', String(sc.probe.py));
+      const h = k('handle');
+      h.setAttribute('transform', `translate(${sc.probe.x} ${sc.probe.fy})`);
+      h.setAttribute('aria-valuenow', st.x.toFixed(2));
+      h.setAttribute('aria-valuetext', `x = ${st.x.toFixed(2)}`);
+      $(root, '[data-out="n"]').textContent = String(st.n);
+      $(root, '[data-out="a"]').textContent = st.a.toFixed(1);
+      $(root, '[data-k="readout"]').innerHTML = taylorReadout(st, sc);
+      svg.setAttribute(
+        'aria-label',
+        `${TAYLOR_FNS[st.fn].label} と、x = ${st.a.toFixed(1)} を中心とする ${st.n} 次のテイラー多項式のグラフ`,
+      );
+    }
+
+    segmented($(root, '[data-k="fns"]'), (v) => {
+      st.fn = v as TaylorFnName;
+      const [lo, hi] = TAYLOR_FNS[st.fn].centerRange;
+      aIn.min = String(lo);
+      aIn.max = String(hi);
+      st.a = Math.min(hi, Math.max(lo, st.a));
+      aIn.value = String(st.a);
+      st.x = probeFromPx(st.fn, taylorScene(st).probe.x);
+      draw();
+    });
+    onInput(nIn, (el) => {
+      st.n = Number(el.value);
+      draw();
+    });
+    onInput(aIn, (el) => {
+      st.a = Number(el.value);
+      draw();
+    });
+    draggable(k('handle'), svg, {
+      onDrag: (p) => {
+        st.x = probeFromPx(st.fn, p.x);
+        draw();
+      },
+      onKey: (dx, _dy, big) => {
+        const px = taylorScene(st).probe.x + dx * (big ? 40 : 6);
+        st.x = probeFromPx(st.fn, px);
+        draw();
+      },
+    });
+    draw();
+  });
+</script>
+
+<style>
+  .band {
+    fill: color-mix(in srgb, var(--green) 9%, transparent);
+  }
+
+  .center {
+    stroke: var(--ink-3);
+    stroke-dasharray: 3 5;
+  }
+
+  .alabel {
+    fill: var(--ink-3);
+    font-size: 12px;
+  }
+
+  .curve-f {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2.2;
+  }
+
+  .curve-p {
+    fill: none;
+    stroke: var(--vermilion);
+    stroke-width: 2.6;
+    stroke-linejoin: round;
+  }
+
+  .err {
+    stroke: var(--amber);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .pdot {
+    fill: var(--vermilion);
+  }
+
+  .hdot {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+  }
+
+  .lg::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  .lg.f::before {
+    background: var(--ink);
+  }
+
+  .lg.p::before {
+    background: var(--vermilion);
+  }
+
+  .lg.b::before {
+    height: 10px;
+    background: color-mix(in srgb, var(--green) 22%, transparent);
+  }
+</style>

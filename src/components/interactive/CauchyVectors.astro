@@ -1,0 +1,94 @@
+---
+import Figure from './Figure.astro';
+import { H, W, cauchyReadout, cauchyScene, toPx, type CauchyState } from '../../lib/scenes/cauchy';
+
+const st: CauchyState = { a: [2.5, 1], b: [0.75, 2.25] };
+const A = toPx(st.a);
+const B = toPx(st.b);
+---
+
+<Figure
+  name="cauchy"
+  title="内積の2乗と、長さの積の差"
+  state={st}
+  scene={cauchyScene(st)}
+  readout={cauchyReadout(st)}
+  width={W}
+  height={H}
+  ariaLabel="2つのベクトル a, b と、それらが張る平行四辺形"
+  hint="ベクトルの先端をドラッグ（0.25 刻みで止まります。矢印キーでも可）"
+  legend={[
+    { label: 'a', color: 'var(--accent)' },
+    { label: 'b', color: 'var(--vermilion)' },
+    { label: '平行四辺形', color: 'var(--green)', kind: 'area' },
+  ]}
+>
+  <Fragment slot="overlay">
+    <g class="handle" data-k="ha" tabindex="0" role="slider" aria-label="ベクトル a の先端" transform={`translate(${A[0]} ${A[1]})`}>
+      <circle r="22" fill="transparent"></circle>
+      <circle r="8" class="knob"></circle>
+    </g>
+    <g class="handle" data-k="hb" tabindex="0" role="slider" aria-label="ベクトル b の先端" transform={`translate(${B[0]} ${B[1]})`}>
+      <circle r="22" fill="transparent"></circle>
+      <circle r="8" class="knob"></circle>
+    </g>
+  </Fragment>
+  <Fragment slot="controls">
+    <div class="ctl">
+      <span>試す</span>
+      <div class="ctl-row">
+        <button type="button" class="btn" data-act="parallel">b を a と平行に</button>
+        <button type="button" class="btn" data-act="zero">b を零ベクトルに</button>
+        <button type="button" class="btn" data-act="reset">元に戻す</button>
+      </div>
+    </div>
+  </Fragment>
+  <slot />
+</Figure>
+
+<script>
+  import { $, draggable, onFigures } from '../../lib/interaction';
+  import { cauchyReadout, cauchyScene, snap, toMath, toPx, type CauchyState } from '../../lib/scenes/cauchy';
+
+  onFigures('cauchy', (root) => {
+    const init = JSON.parse(root.dataset.state!) as CauchyState;
+    const st: CauchyState = { a: [...init.a], b: [...init.b] };
+    const svg = $<SVGSVGElement>(root, 'svg');
+    const draw = () => {
+      $(root, '[data-k="scene"]').innerHTML = cauchyScene(st);
+      $(root, '[data-k="readout"]').innerHTML = cauchyReadout(st);
+      for (const key of ['a', 'b'] as const) {
+        const [x, y] = toPx(st[key]);
+        const h = $(root, `[data-k="h${key}"]`);
+        h.setAttribute('transform', `translate(${x} ${y})`);
+        h.setAttribute('aria-valuetext', `${key} = (${st[key][0]}, ${st[key][1]})`);
+      }
+    };
+    for (const key of ['a', 'b'] as const) {
+      draggable($(root, `[data-k="h${key}"]`), svg, {
+        onDrag: (p) => {
+          st[key] = toMath(p.x, p.y);
+          draw();
+        },
+        onKey: (dx, dy) => {
+          const [x, y] = toPx([st[key][0] + dx * 0.25, st[key][1] + dy * 0.25]);
+          st[key] = toMath(x, y);
+          draw();
+        },
+      });
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const act = btn.dataset.act;
+        if (act === 'parallel') st.b = [snap(-0.8 * st.a[0]), snap(-0.8 * st.a[1])];
+        if (act === 'parallel' && st.b[0] * st.a[1] !== st.b[1] * st.a[0]) st.b = [-st.a[0], -st.a[1]];
+        if (act === 'zero') st.b = [0, 0];
+        if (act === 'reset') {
+          st.a = [...init.a];
+          st.b = [...init.b];
+        }
+        draw();
+      }),
+    );
+  });
+</script>

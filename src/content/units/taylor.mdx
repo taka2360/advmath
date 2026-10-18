@@ -1,0 +1,326 @@
+---
+order: 1
+title: テイラー展開と近似
+hook: 関数を多項式でまねる。極限の値も不等式の形も、近似の精度から読める。
+summary: 接線による近似を2次、3次……と高めていくと、関数は多項式でいくらでも正確にまねられる。どこまで正確か、どこから先はまねられないのかまで含めて学ぶ。
+payoff: 「x → 0 のとき (x − sin x)/x³ → ?」のような極限の値が一目で見え、「x > 0 で eˣ > 1 + x + x²/2」のような不等式の形を予想できるようになる。
+minutes: 35
+outsideType: 一般化
+hsPrerequisites:
+  - 数学IIIの微分（第2次以上の導関数）
+  - 部分積分
+  - 接線の方程式
+newTools:
+  - テイラーの定理（剰余項つき）
+  - 主要な関数のマクローリン展開
+  - 収束する範囲という考え方
+backToHS: 剰余項は部分積分の繰り返しで導けるので、それ自体が高校範囲で書ける。不等式は「差の関数を微分して増減を調べる」形に直せばよい。
+edges:
+  prerequisite: []
+  application: []
+  related: [lhopital, jensen, asymptotics]
+aliases:
+  - マクローリン展開
+  - テイラー級数
+  - テーラー展開
+  - 近似式
+  - 剰余項
+  - 多項式近似
+  - 収束半径
+pitfalls:
+  - 仮定：a と x を含む区間で n+1 回微分可能であること
+  - 展開の中心 a から離れるほど誤差は大きくなりうる（中心と近似がよい範囲は別物）
+  - log(1+x) の級数は −1 < x ≤ 1 でしか収束せず、|x| > 1 では次数を上げるほど悪化する
+  - 「≈」は証明にならない。極限・不等式には剰余項の評価が必要
+  - テイラー級数が収束しても、元の関数と一致しない例がある
+exercises:
+  - { id: taylor-1, title: 3次の差を読む極限, level: 基本 }
+  - { id: taylor-2, title: 誤差を保証した近似値, level: 基本 }
+  - { id: taylor-3, title: 対数の両側評価, level: 標準 }
+  - { id: taylor-4, title: 4次まで一致させる, level: 発展 }
+map: { x: 18, y: 10, group: 解析, label: テイラー展開 }
+---
+
+import Layer from '../../components/unit/Layer.astro';
+import Theorem from '../../components/unit/Theorem.astro';
+import Proof from '../../components/unit/Proof.astro';
+import Pitfall from '../../components/unit/Pitfall.astro';
+import Craft from '../../components/unit/Craft.astro';
+import Exercise from '../../components/unit/Exercise.astro';
+import Step from '../../components/unit/Step.astro';
+import TaylorPlot from '../../components/interactive/TaylorPlot.astro';
+
+<Layer id="intuition">接線の次は、放物線。その次は3次曲線。</Layer>
+
+曲線 $y = f(x)$ を点 $x = a$ の近くで直線でまねたものが接線です。接線は「$a$ での値」と「$a$ での傾き（1階微分）」が $f$ と一致する唯一の1次式でした。
+
+それなら、**値・1階微分・2階微分まで一致する2次式**、さらに3階微分まで一致する3次式……と条件を増やしていけば、$f$ をより長い区間で、より正確にまねられるはずです。そうして作った多項式を**テイラー多項式**と呼びます。
+
+<TaylorPlot>
+  黒が元の関数、朱色が中心 $a$ における $n$ 次のテイラー多項式です。白い点をドラッグすると、その位置での誤差（黄色の線分）が読めます。$\sin x$ では次数を上げるほど一致する区間が広がりますが、$\log(1+x)$ に切り替えて $x > 1$ を見ると、次数を上げるほどかえって暴れます。
+</TaylorPlot>
+
+図を触ると、2つのことが分かります。
+
+1. 中心 $a$ のすぐ近くでは、次数が低くても驚くほどよく一致する。
+2. 中心から離れたところで一致するかどうかは**関数ごとに決まっている**。$\sin x,\ \cos x,\ e^x$ はどこでも次数を上げれば追いつくが、$\log(1+x)$（中心 $0$）は $|x| > 1$ では追いつけない。
+
+1 が「極限の値が一目で見える」理由で、2 が「近似を使うときに条件を確認しなければならない」理由です。
+
+<Layer id="tool">テイラーの定理と主要な展開</Layer>
+
+<Theorem name="テイラーの定理（積分形の剰余項）">
+
+関数 $f$ が $a$ と $x$ を含む区間で $n+1$ 回微分可能で、$f^{(n+1)}$ が連続であるとき、
+
+$$
+f(x) = \sum_{k=0}^{n} \frac{f^{(k)}(a)}{k!}(x-a)^k + R_{n+1}(x),
+\qquad
+R_{n+1}(x) = \int_a^x \frac{(x-t)^n}{n!} f^{(n+1)}(t)\,dt .
+$$
+
+特に、$a$ と $x$ の間で $|f^{(n+1)}| \le M$ ならば
+$\displaystyle |R_{n+1}(x)| \le \frac{M\,|x-a|^{n+1}}{(n+1)!}$。
+
+</Theorem>
+
+和の部分が $n$ 次のテイラー多項式 $P_n(x)$、$R_{n+1}$ が**剰余項**（誤差）です。$a = 0$ の場合を特に**マクローリン展開**と呼びます。剰余項は $a$ と $x$ の間のある $c$ を用いて $\dfrac{f^{(n+1)}(c)}{(n+1)!}(x-a)^{n+1}$ とも書けます（ラグランジュの剰余項）。
+
+入試でよく使う展開を並べます。右側は、次数を上げると誤差が $0$ に近づく $x$ の範囲です。
+
+| 関数 | マクローリン展開 | 成り立つ範囲 |
+| --- | --- | --- |
+| $e^x$ | $1 + x + \dfrac{x^2}{2!} + \dfrac{x^3}{3!} + \cdots$ | すべての $x$ |
+| $\sin x$ | $x - \dfrac{x^3}{3!} + \dfrac{x^5}{5!} - \cdots$ | すべての $x$ |
+| $\cos x$ | $1 - \dfrac{x^2}{2!} + \dfrac{x^4}{4!} - \cdots$ | すべての $x$ |
+| $\log(1+x)$ | $x - \dfrac{x^2}{2} + \dfrac{x^3}{3} - \cdots$ | $-1 < x \le 1$ |
+| $(1+x)^{\alpha}$ | $1 + \alpha x + \dfrac{\alpha(\alpha-1)}{2!}x^2 + \cdots$ | $-1 < x < 1$ |
+
+### 極限を読む
+
+$x \to 0$ のとき $\sin x = x - \dfrac{x^3}{6} + (x^5\ \text{程度の量})$ なので
+
+$$
+\frac{x - \sin x}{x^3} = \frac{1}{6} - \frac{(x^5\ \text{程度の量})}{x^3} \longrightarrow \frac{1}{6}.
+$$
+
+分子の $x$ と $\sin x$ が「3次の項で初めて食い違う」ことが、分母の $x^3$ とつり合っているわけです。何次の項で差が出るかが分かれば、極限は読めます。
+
+<Pitfall title="「≈」は証明ではない">
+
+「$\sin x \approx x - x^3/6$ だから」は答えの見当にはなりますが、根拠にはなりません。捨てた部分が本当に小さいこと、つまり**剰余項の評価**（上の例なら $\left|R\right| \le |x|^5/120$）があって初めて証明になります。
+
+</Pitfall>
+
+<Pitfall title="次数を上げれば、どこでも近似がよくなるわけではない">
+
+中心 $a$ と「近似がよい範囲」は別物です。$\log(1+x)$ を $0$ のまわりで展開した級数は $|x| > 1$ では収束しません。図で $x = 2$ あたりに点を置き、次数を上げてみてください。誤差は小さくなるどころか増えていきます。
+
+</Pitfall>
+
+<Layer id="why">部分積分を繰り返すだけ</Layer>
+
+テイラーの定理は、高校で学ぶ部分積分だけで証明できます。この事実は答案を書くうえでも重要です（第4層）。
+
+<Proof>
+
+出発点は微分積分学の基本定理 $f(x) = f(a) + \displaystyle\int_a^x f'(t)\,dt$ です。$t$ についての積分で、$1$ の原始関数として $-(x-t)$ を選んで部分積分すると
+
+$$
+\int_a^x f'(t)\,dt
+= \Big[-(x-t)f'(t)\Big]_a^x + \int_a^x (x-t) f''(t)\,dt
+= f'(a)(x-a) + \int_a^x (x-t) f''(t)\,dt .
+$$
+
+一般に、$\dfrac{(x-t)^k}{k!}$ の $t$ についての原始関数として $-\dfrac{(x-t)^{k+1}}{(k+1)!}$ を選ぶと
+
+$$
+\int_a^x \frac{(x-t)^k}{k!} f^{(k+1)}(t)\,dt
+= \frac{f^{(k+1)}(a)}{(k+1)!}(x-a)^{k+1} + \int_a^x \frac{(x-t)^{k+1}}{(k+1)!} f^{(k+2)}(t)\,dt .
+$$
+
+これを $k = 1, 2, \dots, n-1$ と繰り返せば定理の式になります。評価式は、$a$ と $x$ の間で $|f^{(n+1)}(t)| \le M$ のとき
+
+$$
+|R_{n+1}(x)| \le M\left|\int_a^x \frac{(x-t)^n}{n!}\,dt\right| = \frac{M\,|x-a|^{n+1}}{(n+1)!}
+$$
+
+から従います。
+
+</Proof>
+
+### なぜ $e^x$ はどこでも追いつき、$\log(1+x)$ は追いつけないのか
+
+$e^x$ の場合、$0$ と $x$ の間で $|f^{(n+1)}| = e^t \le e^{|x|}$ なので $|R_{n+1}(x)| \le e^{|x|}\dfrac{|x|^{n+1}}{(n+1)!}$。$x$ を固定して $n$ を大きくすると、$n \ge 2|x|$ からは1つ増えるたびに $\dfrac{|x|}{n+1} \le \dfrac12$ 倍以下になるので、剰余項は $0$ に収束します。**階乗が累乗に勝つ**のです。
+
+一方 $\log(1+x)$ の級数の各項は $\pm\dfrac{x^n}{n}$ です。$|x| > 1$ なら $\dfrac{|x|^n}{n} \to \infty$ で、項が $0$ に近づかない級数は収束できません。図で見た「暴れ」はこれです。
+
+<Layer id="exam">答案ではどう扱うか</Layer>
+
+例として次の問題を考えます。
+
+> $\displaystyle \lim_{x \to 0} \frac{e^x - 1 - x}{x^2}$ を求めよ。
+
+<Craft kind="idea">
+
+$e^x = 1 + x + \dfrac{x^2}{2} + \cdots$ を知っていれば、分子は $\dfrac{x^2}{2} + (x^3\ \text{程度})$ なので答えは $\dfrac12$ だと**数秒で分かります**。記述式でも、先に答えが分かっていれば方針が立てやすく、計算の検算にも使えます。
+
+</Craft>
+
+<Craft kind="direct">
+
+テイラーの定理を答案の根拠として使うなら、少なくとも (1) 定理の主張（剰余項つき）を正確に書く、(2) 微分可能性などの仮定を満たすことを確認する、(3) 剰余項が $0$ に近づくことを評価する、の3点が必要です。「$\approx$ だから」では減点の対象になりえます。
+
+範囲外の定理を答案の根拠として認めるかどうかは試験の指示や採点方針によって異なり、公表されていないことも多いのが実情です。**考えるために使うことと、答案の根拠にすることは分けて考えましょう。**
+
+</Craft>
+
+<Craft kind="rebuild">
+
+剰余項を部分積分で導けば、すべて高校範囲で書けます。
+
+**解答例．** 部分積分を2回行うと
+
+$$
+e^x = 1 + x + \frac{x^2}{2} + R(x), \qquad R(x) = \int_0^x \frac{(x-t)^2}{2} e^t\,dt .
+$$
+
+$0$ と $x$ の間の $t$ では $0 < e^t \le e^{|x|}$ だから
+
+$$
+|R(x)| \le e^{|x|}\left|\int_0^x \frac{(x-t)^2}{2}\,dt\right| = \frac{e^{|x|}|x|^3}{6}.
+$$
+
+よって $x \ne 0$ で $\left|\dfrac{e^x - 1 - x}{x^2} - \dfrac12\right| = \dfrac{|R(x)|}{x^2} \le \dfrac{e^{|x|}|x|}{6} \to 0 \ (x \to 0)$。はさみうちの原理より、求める極限は $\dfrac12$。
+
+</Craft>
+
+不等式の問題でも同じ構図です。たとえば「$x > 0$ で $e^x > 1 + x + \dfrac{x^2}{2}$」は、テイラー展開で**形を予想**し、答案では $g(x) = e^x - 1 - x - \dfrac{x^2}{2}$ とおいて $g''(x) = e^x - 1 > 0$、$g'(0) = g(0) = 0$ から増減で示すのが標準的です。
+
+<Layer id="advanced">級数が元の関数に戻らない例と、e の無理性</Layer>
+
+### 収束しても一致しないことがある
+
+$$
+f(x) = \begin{cases} e^{-1/x^2} & (x \ne 0) \\ 0 & (x = 0) \end{cases}
+$$
+
+は何回でも微分でき、しかも $f^{(k)}(0) = 0$ がすべての $k$ で成り立つことが知られています。するとマクローリン級数は恒等的に $0$ で、どこでも収束しますが、$x \ne 0$ では $f(x) > 0$ なので元の関数とは一致しません。**剰余項が $0$ に近づくことを確かめて初めて「展開できる」と言える**、という教訓です。
+
+### $e$ が無理数であること
+
+剰余項の評価は、整数の議論にも使えます。$x = 1$ として
+
+$$
+e = \sum_{k=0}^{n} \frac{1}{k!} + R_n, \qquad R_n = \int_0^1 \frac{(1-t)^n}{n!} e^t\,dt, \qquad 0 < R_n < \frac{e}{(n+1)!} < \frac{3}{(n+1)!}.
+$$
+
+$e$ が有理数 $\dfrac{p}{q}$（$p, q$ は正の整数）だとします。$2 < e < 3$ より $e$ は整数でないので $q \ge 2$ です。$n = q$ として両辺に $q!$ を掛けると、$q!\,e$ と $q!\displaystyle\sum_{k=0}^{q}\frac{1}{k!}$ は整数なので、$q!\,R_q$ も整数。ところが $0 < q!\,R_q < \dfrac{3}{q+1} \le 1$ で、これは矛盾です。よって $e$ は無理数です。
+
+<Layer id="exercises">演習</Layer>
+
+<Exercise id="taylor-1" n={1} title="3次の差を読む極限" level="基本">
+
+$\displaystyle \lim_{x \to 0} \frac{x - \sin x}{x^3}$ を求めよ。答案は高校範囲で書くこと。
+
+<Step kind="hint" n={1}>
+$\sin x$ のマクローリン展開を3次まで書くと、答えの見当がつきます。
+</Step>
+
+<Step kind="hint" n={2}>
+$(\sin x)^{(5)} = \cos x$ です。4次までのテイラー多項式は $x - \dfrac{x^3}{6}$（4次の係数は $0$）なので、剰余項は $\cos$ を含む積分で書けます。
+</Step>
+
+<Step kind="approach">
+部分積分を繰り返して $\sin x = x - \dfrac{x^3}{6} + R(x)$、$R(x) = \displaystyle\int_0^x \frac{(x-t)^4}{4!}\cos t\,dt$ と書き、$|R(x)| \le \dfrac{|x|^5}{120}$ と評価して、はさみうちに持ち込みます。
+</Step>
+
+<Step kind="answer">
+
+$|\cos t| \le 1$ より $|R(x)| \le \left|\displaystyle\int_0^x \frac{(x-t)^4}{24}\,dt\right| = \dfrac{|x|^5}{120}$。したがって $x \ne 0$ で
+
+$$
+\left| \frac{x - \sin x}{x^3} - \frac16 \right| = \frac{|R(x)|}{|x|^3} \le \frac{x^2}{120} \to 0 .
+$$
+
+答え：$\dfrac16$
+
+</Step>
+
+</Exercise>
+
+<Exercise id="taylor-2" n={2} title="誤差を保証した近似値" level="基本">
+
+$e^{0.1}$ の近似値を、誤差が $10^{-5}$ 未満であることを保証して求めよ。ただし $e < 3$ は用いてよい。
+
+<Step kind="hint" n={1}>
+$e^x$ の3次のテイラー多項式と、剰余項の評価 $|R_4| \le \dfrac{M|x|^4}{4!}$ を使います。
+</Step>
+
+<Step kind="approach">
+$0 \le t \le 0.1$ で $e^t \le e^{0.1} < 3^{0.1} < 1.2$ として $M = 1.2$ と取ります。
+</Step>
+
+<Step kind="answer">
+
+$P_3(0.1) = 1 + 0.1 + 0.005 + 0.000166\cdots = 1.1051666\cdots$。剰余項は $0 < R_4 \le \dfrac{1.2 \times 0.1^4}{24} = 5 \times 10^{-6} < 10^{-5}$。
+
+したがって $1.1051666\cdots < e^{0.1} < 1.1051717\cdots$ で、この区間のどの値と比べても $1.10517$ との差は $10^{-5}$ 未満です。
+
+答え：$e^{0.1} \fallingdotseq 1.10517$（実際の値は $1.1051709\cdots$）
+
+※ $3^{0.1} < 1.2$ は $1.2^{10} = 6.19\cdots > 3$ から分かります。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="taylor-3" n={3} title="対数の両側評価" level="標準">
+
+(1) $x > 0$ のとき $x - \dfrac{x^2}{2} < \log(1+x) < x$ を示せ。
+
+(2) (1) を用いて $\displaystyle \lim_{n \to \infty} \left(1 + \frac1n\right)^n = e$ を示せ。
+
+<Step kind="hint" n={1}>
+$\log(1+x) = x - \dfrac{x^2}{2} + \dfrac{x^3}{3} - \cdots$ の、どこで打ち切っても交互に上下からはさむ形になっています。答案ではそれぞれ差の関数の増減で示します。
+</Step>
+
+<Step kind="approach">
+(1) $f(x) = x - \log(1+x)$、$g(x) = \log(1+x) - x + \dfrac{x^2}{2}$ を微分。(2) $x = \dfrac1n$ を代入して $n$ 倍します。
+</Step>
+
+<Step kind="answer">
+
+(1) $f'(x) = 1 - \dfrac{1}{1+x} = \dfrac{x}{1+x} > 0$、$f(0) = 0$ より $f(x) > 0$。$g'(x) = \dfrac{1}{1+x} - 1 + x = \dfrac{x^2}{1+x} > 0$、$g(0) = 0$ より $g(x) > 0$。
+
+(2) $x = \dfrac1n$ として $n$ 倍すると $1 - \dfrac{1}{2n} < n\log\left(1 + \dfrac1n\right) < 1$。はさみうちで $n\log\left(1+\dfrac1n\right) \to 1$。指数関数の連続性から $\left(1+\dfrac1n\right)^n = e^{\,n\log(1 + 1/n)} \to e$。
+
+</Step>
+
+</Exercise>
+
+<Exercise id="taylor-4" n={4} title="4次まで一致させる" level="発展">
+
+$\displaystyle \lim_{x \to 0} \frac{1}{x^4}\left\{ \cos x - \frac{1 + a x^2}{1 + b x^2} \right\} = 0$ となる定数 $a, b$ を求めよ。
+
+<Step kind="hint" n={1}>
+$\dfrac{1}{1 + bx^2} = 1 - bx^2 + b^2x^4 - \cdots$（$|bx^2| < 1$）を使って、分数式を $x^4$ の項まで展開します。
+</Step>
+
+<Step kind="approach">
+$\cos x$ と分数式の展開を比べ、$x^2$ と $x^4$ の係数がそれぞれ一致することが必要十分です（$x^4$ で割って $0$ に収束するには、$x^4$ 以下の項がすべて消えなければならない）。
+</Step>
+
+<Step kind="answer">
+
+$\dfrac{1 + ax^2}{1 + bx^2} = 1 + (a - b)x^2 + b(b - a)x^4 + (x^6\ \text{程度})$、$\cos x = 1 - \dfrac{x^2}{2} + \dfrac{x^4}{24} + (x^6\ \text{程度})$。
+
+係数を比べて $a - b = -\dfrac12$、$b(b - a) = \dfrac{b}{2} = \dfrac{1}{24}$。
+
+答え：$a = -\dfrac{5}{12},\ b = \dfrac{1}{12}$
+
+※ 答案として書くときは、$x^6$ 程度の部分を剰余項の評価で押さえる必要があります。このように「近似の次数を合わせる」問題は、テイラー展開で答えを出し、答案では評価を添えるのが定石です。
+
+</Step>
+
+</Exercise>

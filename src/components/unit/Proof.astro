@@ -1,0 +1,36 @@
+---
+interface Props {
+  title?: string;
+}
+const { title = '証明' } = Astro.props;
+---
+
+<div class="proof">
+  <div class="label">{title}</div>
+  <div class="body"><slot /></div>
+  <div class="qed" aria-label="証明終わり">∎</div>
+</div>
+
+<style>
+  .proof {
+    margin: 1.6em 0;
+    padding-left: 1.1em;
+    border-left: 2px solid var(--line-strong);
+  }
+
+  .label {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+
+  .body :global(> :first-child) {
+    margin-top: 0.3em;
+  }
+
+  .qed {
+    text-align: right;
+    color: var(--ink-3);
+  }
+</style>
