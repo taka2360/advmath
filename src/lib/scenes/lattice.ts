@@ -29,8 +29,9 @@ export function latticeScene(st: LatticeState): string {
   // 対角線 y = x と、越えてはいけない線 y = x + 1
   out += `<path class="dash" d="M${P(0, 0).join(' ')}L${P(n, n).join(' ')}"/>`;
   out += `<path class="forbid" d="M${P(0, 1).join(' ')}L${P(n, n + 1).join(' ')}"/>`;
-  const [tx, ty] = P(n, n + 1);
-  out += `<text x="${tx - 6}" y="${ty - 8}" text-anchor="end" class="lbl-verm">y = x + 1</text>`;
+  // ラベルは禁止線の左下端に置く (右上は折り返した経路の終点ラベルと重なるため)
+  const [tx, ty] = P(0, 1);
+  out += `<text x="${tx - 8}" y="${ty + 4}" text-anchor="end" class="lbl-verm">y = x + 1</text>`;
   const pts = points(path);
   const complete = path.length === 2 * n;
   const good = isGood(path);
