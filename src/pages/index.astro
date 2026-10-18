@@ -16,7 +16,7 @@ const problems = [
   { q: '三角形 ABC で $\\sin A + \\sin B + \\sin C$ の最大値は。', unit: 'jensen', see: '凸性から等号条件まで見える' },
   { q: '$2^{100}$ を $7$ で割った余りは。', unit: 'congruence', see: '余りの周期を読む' },
   { q: '$a_{n+2} = 4a_{n+1} - 4a_n$ の一般項の形は。', unit: 'recurrence', see: '重解のとき何が現れるか' },
-  { q: '$y = \\sin x\\ (0 \\le x \\le \\pi)$ を $y$ 軸のまわりに回転した体積は。', unit: 'shell-integral', see: '逆関数なしで一行の積分に' },
+  { q: '$y = \\sin x\\ (0 \\le x \\le \\pi)$ と $x$ 軸で囲まれた部分を、$y$ 軸のまわりに回転した体積は。', unit: 'shell-integral', see: '逆関数なしで一行の積分に' },
   { q: '$(0,0)$ から $(5,5)$ へ、対角線を越えない最短経路の数は。', unit: 'catalan', see: '悪い経路を鏡に映す' },
   { q: '$\\displaystyle\\lim_{n\\to\\infty}\\frac{\\sqrt[n]{n!}}{n}$ を求めよ。', unit: 'asymptotics', see: '和を積分ではさむ' },
 ].map((p) => ({ ...p, html: texInline(p.q), u: byId.get(p.unit)! }));

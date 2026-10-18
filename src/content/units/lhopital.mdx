@@ -57,6 +57,8 @@ $x \to 0$ で分子も分母も $0$ に近づく $\dfrac{\sin x}{x}$ のよう�
 
 2つ目の例 $\dfrac{e^x - 1 - x}{x^2}$ では、分子も分母も傾きが $0$ です。拡大しても直線にはならず放物線のままですが、それでも比は $\dfrac12$ に近づきます。これは「導関数の比も $0/0$ だから、もう一度同じことをする」ことに対応します。
 
+3つ目の例 $\dfrac{x^2\sin(1/x)}{x}$ は逆向きの警告です。$\dfrac{f}{g} = x\sin\dfrac1x$ は $|x\sin(1/x)| \le |x|$ から $0$ に近づくのに、$\dfrac{f'}{g'} = 2x\sin\dfrac1x - \cos\dfrac1x$ は $-1$ と $1$ の間を振動し続けます。導関数の比が収束しなくても、元の比は収束しうるのです。
+
 <Layer id="tool">ロピタルの定理</Layer>
 
 <Theorem name="ロピタルの定理（0/0 型）">
@@ -81,7 +83,7 @@ $\displaystyle\lim_{x \to 0} \frac{e^x + x}{\cos x + x}$ は、代入すれば $
 
 <Pitfall title="sin x / x → 1 をロピタルで示すと循環論法">
 
-$\displaystyle\lim_{x \to 0}\frac{\sin x}{x} = \lim_{x \to 0}\frac{\cos x}{1} = 1$ は一見正しい計算です。しかし $(\sin x)' = \cos x$ を導く過程で、まさに $\displaystyle\lim_{x\to 0}\frac{\sin x}{x} = 1$ を使っています。証明すべき事実を前提にしているので、これは証明になりません。
+$\displaystyle\lim_{x \to 0}\frac{\sin x}{x} = \lim_{x \to 0}\frac{\cos x}{1} = 1$ は一見正しい計算です。しかし高校の教科書の流れでは、$(\sin x)' = \cos x$ を導く過程で、まさに $\displaystyle\lim_{x\to 0}\frac{\sin x}{x} = 1$ を使っています。証明すべき事実を前提にしているので、これは証明になりません。
 
 </Pitfall>
 
@@ -112,13 +114,13 @@ $$
 
 <Proof title="ロピタルの定理の証明（x → a + 0 の場合）">
 
-$f(a) = g(a) = 0$ と定めると、$f, g$ は $a$ で連続になる。$a < x$ をとり、区間 $[a, x]$ にコーシーの平均値の定理を使うと
+$f(a) = g(a) = 0$ と定め直すと（$a$ での値は極限に影響しない）、$f, g$ は $a$ で連続になる。$x \in I$、$a < x$ をとり、区間 $[a, x]$ にコーシーの平均値の定理を使うと（このとき $g(x) \ne g(a) = 0$ も保証される）
 
 $$
 \frac{f(x)}{g(x)} = \frac{f(x) - f(a)}{g(x) - g(a)} = \frac{f'(c_x)}{g'(c_x)}, \qquad a < c_x < x .
 $$
 
-$x \to a + 0$ のとき $c_x \to a + 0$ なので、右辺は $L$ に近づく。$x \to a - 0$ も同様。
+$x \to a + 0$ のとき、$a < c_x < x$ より $c_x \to a + 0$ なので、右辺は $L$ に近づく。$x \to a - 0$ も区間 $[x, a]$ で同様。
 
 </Proof>
 
